@@ -23,6 +23,7 @@ import type {
   NodeInfoDispatcher,
   ObjectAuthorizePredicate,
   ObjectDispatcher,
+  OrderedCollectionDispatcher,
   OutboxErrorHandler,
   SharedInboxKeyDispatcher,
 } from "./callback.ts";
@@ -445,6 +446,73 @@ export interface Federatable<TContextData> {
     inboxPath: `${string}{identifier}${string}` | `${string}{handle}${string}`,
     sharedInboxPath?: string,
   ): InboxListenerSetters<TContextData>;
+  /**
+   * Registers a collection of objects dispatcher.
+   *
+   * @typeParam TContextData The context data to pass to the {@link Context}.
+   * @typeParam TObject The type of objects to dispatch.
+   * @typeParam TParam The parameter names of the requested URL.
+   * @param identifier A unique identifier for the collection dispatcher.
+   * @param itemType The Activity Vocabulary class of the object to dispatch.
+   * @param path The URI path pattern for the collection dispatcher.
+   *             The syntax is based on URI Template
+   *             ([RFC 6570](https://tools.ietf.org/html/rfc6570)).
+   *             The path must have one or more variables.
+   * @param dispatcher A collection dispatcher callback to register.
+   */
+  setCollectionDispatcher<
+    TObject extends Object,
+    TParam extends Record<string, string>,
+  >(
+    identifier: string | symbol,
+    // deno-lint-ignore no-explicit-any
+    itemType: (new (...args: any[]) => TObject) | TObject,
+    path: `${string}{${Extract<keyof TParam, string>}}${string}`,
+    dispatcher: CollectionDispatcher<
+      TObject,
+      RequestContext<TContextData>,
+      TContextData,
+      void
+    >,
+  ): CollectionCallbackSetters<
+    RequestContext<TContextData>,
+    TContextData,
+    void
+  >;
+
+  /**
+   * Registers an ordered collection of objects dispatcher.
+   *
+   * @typeParam TContextData The context data to pass to the {@link Context}.
+   * @typeParam TObject The type of objects to dispatch.
+   * @typeParam TParam The parameter names of the requested URL.
+   * @param identifier A unique identifier for the collection dispatcher.
+   * @param itemType The Activity Vocabulary class of the object to dispatch.
+   * @param path The URI path pattern for the collection dispatcher.
+   *             The syntax is based on URI Template
+   *             ([RFC 6570](https://tools.ietf.org/html/rfc6570)).
+   *             The path must have one or more variables.
+   * @param dispatcher A collection dispatcher callback to register.
+   */
+  setOrderedCollectionDispatcher<
+    TObject extends Object,
+    TParam extends Record<string, string>,
+  >(
+    identifier: string | symbol,
+    // deno-lint-ignore no-explicit-any
+    itemType: (new (...args: any[]) => TObject) | TObject,
+    path: `${string}{${Extract<keyof TParam, string>}}${string}`,
+    dispatcher: OrderedCollectionDispatcher<
+      TObject,
+      RequestContext<TContextData>,
+      TContextData,
+      void
+    >,
+  ): CollectionCallbackSetters<
+    RequestContext<TContextData>,
+    TContextData,
+    void
+  >;
 }
 
 /**
