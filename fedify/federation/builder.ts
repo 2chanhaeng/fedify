@@ -18,6 +18,7 @@ import type {
   NodeInfoDispatcher,
   ObjectAuthorizePredicate,
   ObjectDispatcher,
+  OrderedCollectionDispatcher,
   SharedInboxKeyDispatcher,
 } from "./callback.ts";
 import type { Context, RequestContext } from "./context.ts";
@@ -29,6 +30,8 @@ import type {
   FederationOptions,
   InboxListenerSetters,
   ObjectCallbackSetters,
+  ObjectWithTypeId,
+  ParamsKeyPath,
 } from "./federation.ts";
 import type { CollectionCallbacks } from "./handler.ts";
 import { InboxListenerSet } from "./inbox.ts";
@@ -88,6 +91,20 @@ export class FederationBuilderImpl<TContextData>
     TContextData,
     void
   >;
+  customCollectionCallbacks: Record<
+    string | symbol,
+    CollectionCallbacks<
+      Object,
+      RequestContext<TContextData>,
+      TContextData,
+      void
+    >
+  >;
+  customCollectionTypeIds: Record<
+    string | symbol,
+    // deno-lint-ignore no-explicit-any
+    (new (...args: any[]) => Object) | Object
+  >;
   inboxListeners?: InboxListenerSet<TContextData>;
   inboxErrorHandler?: InboxErrorHandler<TContextData>;
   sharedInboxKeyDispatcher?: SharedInboxKeyDispatcher<TContextData>;
@@ -96,6 +113,8 @@ export class FederationBuilderImpl<TContextData>
     this.router = new Router();
     this.objectCallbacks = {};
     this.objectTypeIds = {};
+    this.customCollectionCallbacks = {};
+    this.customCollectionTypeIds = {};
   }
 
   async build(
@@ -143,6 +162,8 @@ export class FederationBuilderImpl<TContextData>
     f.featuredTagsCallbacks = this.featuredTagsCallbacks == null
       ? undefined
       : { ...this.featuredTagsCallbacks };
+    f.customCollectionCallbacks = { ...this.customCollectionCallbacks };
+    f.customCollectionTypeIds = { ...this.customCollectionTypeIds };
     f.inboxListeners = this.inboxListeners?.clone();
     f.inboxErrorHandler = this.inboxErrorHandler;
     f.sharedInboxKeyDispatcher = this.sharedInboxKeyDispatcher;
@@ -1162,6 +1183,178 @@ export class FederationBuilderImpl<TContextData>
         dispatcher: SharedInboxKeyDispatcher<TContextData>,
       ): InboxListenerSetters<TContextData> => {
         this.sharedInboxKeyDispatcher = dispatcher;
+        return setters;
+      },
+    };
+    return setters;
+  }
+
+  setCollectionDispatcher<
+    TObject extends Object,
+    TParam extends Record<string, string>,
+  >(
+    identifier: string | symbol,
+    itemType: ObjectWithTypeId<TObject>,
+    path: ParamsKeyPath<TParam>,
+    dispatcher: CollectionDispatcher<
+      TObject,
+      RequestContext<TContextData>,
+      TContextData,
+      void
+    >,
+  ): CollectionCallbackSetters<
+    RequestContext<TContextData>,
+    TContextData,
+    void
+  > {
+    const routeName = `collection:${String(identifier)}`;
+    if (this.router.has(routeName)) {
+      throw new RouterError(
+        `Collection dispatcher for ${String(identifier)} already set.`,
+      );
+    }
+
+    // Check if identifier is already used in customCollectionCallbacks
+    if (this.customCollectionCallbacks[identifier] != null) {
+      throw new RouterError(
+        `Collection dispatcher for ${String(identifier)} already set.`,
+      );
+    }
+
+    const variables = this.router.add(path, routeName);
+    if (variables.size < 1) {
+      throw new RouterError(
+        "Path for collection dispatcher must have at least one variable.",
+      );
+    }
+
+    const callbacks: CollectionCallbacks<
+      TObject,
+      RequestContext<TContextData>,
+      TContextData,
+      void
+    > = { dispatcher };
+
+    this.customCollectionCallbacks[identifier] = callbacks;
+    this.customCollectionTypeIds[identifier] = itemType;
+
+    const setters: CollectionCallbackSetters<
+      RequestContext<TContextData>,
+      TContextData,
+      void
+    > = {
+      setCounter(counter: CollectionCounter<TContextData, void>) {
+        callbacks.counter = counter;
+        return setters;
+      },
+      setFirstCursor(
+        cursor: CollectionCursor<
+          RequestContext<TContextData>,
+          TContextData,
+          void
+        >,
+      ) {
+        callbacks.firstCursor = cursor;
+        return setters;
+      },
+      setLastCursor(
+        cursor: CollectionCursor<
+          RequestContext<TContextData>,
+          TContextData,
+          void
+        >,
+      ) {
+        callbacks.lastCursor = cursor;
+        return setters;
+      },
+      authorize(predicate: AuthorizePredicate<TContextData>) {
+        callbacks.authorizePredicate = predicate;
+        return setters;
+      },
+    };
+    return setters;
+  }
+
+  setOrderedCollectionDispatcher<
+    TObject extends Object,
+    TParam extends Record<string, string>,
+  >(
+    identifier: string | symbol,
+    itemType: ObjectWithTypeId<TObject>,
+    path: ParamsKeyPath<TParam>,
+    dispatcher: OrderedCollectionDispatcher<
+      TObject,
+      RequestContext<TContextData>,
+      TContextData,
+      void
+    >,
+  ): CollectionCallbackSetters<
+    RequestContext<TContextData>,
+    TContextData,
+    void
+  > {
+    const routeName = `orderedCollection:${String(identifier)}`;
+    if (this.router.has(routeName)) {
+      throw new RouterError(
+        `Ordered collection dispatcher for ${String(identifier)} already set.`,
+      );
+    }
+
+    // Check if identifier is already used in customCollectionCallbacks
+    if (this.customCollectionCallbacks[identifier] != null) {
+      throw new RouterError(
+        `Collection dispatcher for ${String(identifier)} already set.`,
+      );
+    }
+
+    const variables = this.router.add(path, routeName);
+    if (variables.size < 1) {
+      throw new RouterError(
+        "Path for ordered collection dispatcher must have at least one variable.",
+      );
+    }
+
+    const callbacks: CollectionCallbacks<
+      TObject,
+      RequestContext<TContextData>,
+      TContextData,
+      void
+    > = { dispatcher };
+
+    this.customCollectionCallbacks[identifier] = callbacks;
+    this.customCollectionTypeIds[identifier] = itemType;
+
+    const setters: CollectionCallbackSetters<
+      RequestContext<TContextData>,
+      TContextData,
+      void
+    > = {
+      setCounter(counter: CollectionCounter<TContextData, void>) {
+        callbacks.counter = counter;
+        return setters;
+      },
+      setFirstCursor(
+        cursor: CollectionCursor<
+          RequestContext<TContextData>,
+          TContextData,
+          void
+        >,
+      ) {
+        callbacks.firstCursor = cursor;
+        return setters;
+      },
+      setLastCursor(
+        cursor: CollectionCursor<
+          RequestContext<TContextData>,
+          TContextData,
+          void
+        >,
+      ) {
+        callbacks.lastCursor = cursor;
+        return setters;
+      },
+      authorize(predicate: AuthorizePredicate<TContextData>) {
+        callbacks.authorizePredicate = predicate;
         return setters;
       },
     };
