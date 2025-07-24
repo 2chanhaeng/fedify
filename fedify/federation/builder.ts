@@ -30,7 +30,7 @@ import type {
   FederationOptions,
   InboxListenerSetters,
   ObjectCallbackSetters,
-  ObjectWithTypeId,
+  ObjectConstructorWithTypeId,
   ParamsKeyPath,
 } from "./federation.ts";
 import type { CollectionCallbacks } from "./handler.ts";
@@ -102,8 +102,7 @@ export class FederationBuilderImpl<TContextData>
   >;
   customCollectionTypeIds: Record<
     string | symbol,
-    // deno-lint-ignore no-explicit-any
-    (new (...args: any[]) => Object) | Object
+    ObjectConstructorWithTypeId<Object>
   >;
   inboxListeners?: InboxListenerSet<TContextData>;
   inboxErrorHandler?: InboxErrorHandler<TContextData>;
@@ -1194,7 +1193,7 @@ export class FederationBuilderImpl<TContextData>
     TParam extends Record<string, string>,
   >(
     identifier: string | symbol,
-    itemType: ObjectWithTypeId<TObject>,
+    itemType: ObjectConstructorWithTypeId<TObject>,
     path: ParamsKeyPath<TParam>,
     dispatcher: CollectionDispatcher<
       TObject,
@@ -1280,7 +1279,7 @@ export class FederationBuilderImpl<TContextData>
     TParam extends Record<string, string>,
   >(
     identifier: string | symbol,
-    itemType: ObjectWithTypeId<TObject>,
+    itemType: ObjectConstructorWithTypeId<TObject>,
     path: ParamsKeyPath<TParam>,
     dispatcher: OrderedCollectionDispatcher<
       TObject,

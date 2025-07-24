@@ -465,7 +465,7 @@ export interface Federatable<TContextData> {
     TParam extends Record<string, string>,
   >(
     identifier: string | symbol,
-    itemType: ObjectWithTypeId<TObject>,
+    itemType: ObjectConstructorWithTypeId<TObject>,
     path: ParamsKeyPath<TParam>,
     dispatcher: CollectionDispatcher<
       TObject,
@@ -498,7 +498,7 @@ export interface Federatable<TContextData> {
     TParam extends Record<string, string>,
   >(
     identifier: string | symbol,
-    itemType: ObjectWithTypeId<TObject>,
+    itemType: ObjectConstructorWithTypeId<TObject>,
     path: ParamsKeyPath<TParam>,
     dispatcher: OrderedCollectionDispatcher<
       TObject,
@@ -1027,9 +1027,9 @@ export interface FederationFetchOptions<TContextData> {
  *
  * @typeParam TObject The type of the object.
  */
-export type ObjectWithTypeId<TObject extends Object> =
+export type ObjectConstructorWithTypeId<TObject extends Object> =
   // deno-lint-ignore no-explicit-any
-  ((new (...args: any[]) => TObject) | TObject) & { typeId: URL };
+  (new (...args: any[]) => TObject) & { typeId: URL };
 
 /**
  * Represents a path from the key of parameter objects.
@@ -1060,7 +1060,7 @@ export type ParamsKeyPath<Params extends Record<string, string>> =
  * ```ts
  * type UserPostPath = ParamsPath<"userId" | "postId">;
  * // = `${string}{userId}${string}` & `${string}{postId}${string}`
- * // = 
+ * // =
  * //  | `${string}{userId}${string}{postId}${string}`
  * //  | `${string}{postId}${string}{userId}${string}`
  * let userPostPath: UserPostPath;
