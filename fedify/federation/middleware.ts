@@ -1464,6 +1464,41 @@ export class FederationImpl<TContextData>
           onNotFound,
           onNotAcceptable,
         });
+      case "collection": {
+        const name = route.name.replace(/^collection:/, "");
+        const callbacks = this.customCollectionCallbacks[name];
+        const identifier = route.values.identifier ?? route.values.handle;
+        return await handleCollection(request, {
+          name,
+          identifier,
+          uriGetter: context.getFollowingUri.bind(context),
+          context,
+          collectionCallbacks: callbacks,
+          tracerProvider: this.tracerProvider,
+          onUnauthorized,
+          onNotFound,
+          onNotAcceptable,
+        });
+      }
+      case "orderedCollection": {
+        const name = route.name.replace(
+          /^orderedCollection:/,
+          "",
+        );
+        const callbacks = this.customCollectionCallbacks[name];
+        return await handleCollection(request, {
+          name,
+          identifier: route.values.identifier ?? route.values.handle ?? "",
+          uriGetter: (_handle: string) =>
+            context.getCollectionUri(name, route.values),
+          context,
+          collectionCallbacks: callbacks,
+          tracerProvider: this.tracerProvider,
+          onUnauthorized,
+          onNotFound,
+          onNotAcceptable,
+        });
+      }
       default: {
         const response = onNotFound(request);
         return response instanceof Promise ? await response : response;
@@ -1850,19 +1885,21 @@ export class ContextImpl<TContextData> implements Context<TContextData> {
           return identifier;
         },
       };
-    }
-    // Parse custom collections
-    const collectionRegex = /^(orderedC|c)ollection:(.*)$/;
-    const collectionMatch = route.name.match(collectionRegex);
-    if (collectionMatch) {
-      const name = collectionMatch[2];
-      const cls = this.federation.customCollectionTypeIds[name];
-      const typeId = cls.typeId;
+    } else if (route.name.startsWith("collection:")) {
+      const collectionIdentifier = route.name.replace(/^collection:/, "");
       return {
         type: "collection",
-        name,
-        class: cls,
-        typeId,
+        name: collectionIdentifier,
+        values: route.values,
+      };
+    } else if (route.name.startsWith("orderedCollection:")) {
+      const collectionIdentifier = route.name.replace(
+        /^orderedCollection:/,
+        "",
+      );
+      return {
+        type: "collection",
+        name: collectionIdentifier,
         values: route.values,
       };
     }

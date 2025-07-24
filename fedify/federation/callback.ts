@@ -120,33 +120,6 @@ export type CollectionDispatcher<
 ) => PageItems<TItem> | null | Promise<PageItems<TItem> | null>;
 
 /**
- * A callback that dispatches an ordered collection.
- *
- * @typeParam TItem The type of items in the collection.
- * @typeParam TContext The type of the context.  {@link Context} or
- *                     {@link RequestContext}.
- * @typeParam TContextData The context data to pass to the `TContext`.
- * @typeParam TFilter The type of the filter, if any.
- * @param context The context.
- * @param identifier The internal identifier or the username of the collection
- *                   owner.
- * @param cursor The cursor to start the collection from, or `null` to dispatch
- *               the entire collection without pagination.
- * @param filter The filter to apply to the collection, if any.
- */
-export type OrderedCollectionDispatcher<
-  TItem,
-  TContext extends Context<TContextData>,
-  TContextData,
-  TFilter,
-> = (
-  context: TContext,
-  identifier: string,
-  cursor: string | null,
-  filter?: TFilter,
-) => PageItems<TItem> | null | Promise<PageItems<TItem> | null>;
-
-/**
  * A callback that counts the number of items in a collection.
  *
  * @typeParam TContextData The context data to pass to the {@link Context}.

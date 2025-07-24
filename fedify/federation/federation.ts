@@ -452,7 +452,7 @@ export interface Federatable<TContextData> {
    * @typeParam TContextData The context data to pass to the {@link Context}.
    * @typeParam TObject The type of objects to dispatch.
    * @typeParam TParam The parameter names of the requested URL.
-   * @param identifier A unique identifier for the collection dispatcher.
+   * @param name A unique name for the collection dispatcher.
    * @param itemType The Activity Vocabulary class of the object to dispatch.
    * @param path The URI path pattern for the collection dispatcher.
    *             The syntax is based on URI Template
@@ -462,9 +462,9 @@ export interface Federatable<TContextData> {
    */
   setCollectionDispatcher<
     TObject extends Object,
-    TParam extends Record<string, string>,
+    TParam extends ParamsIncludeIdentifier,
   >(
-    identifier: string | symbol,
+    name: string | symbol,
     itemType: ObjectConstructorWithTypeId<TObject>,
     path: ParamsKeyPath<TParam>,
     dispatcher: CollectionDispatcher<
@@ -485,7 +485,7 @@ export interface Federatable<TContextData> {
    * @typeParam TContextData The context data to pass to the {@link Context}.
    * @typeParam TObject The type of objects to dispatch.
    * @typeParam TParam The parameter names of the requested URL.
-   * @param identifier A unique identifier for the collection dispatcher.
+   * @param name A unique name for the collection dispatcher.
    * @param itemType The Activity Vocabulary class of the object to dispatch.
    * @param path The URI path pattern for the collection dispatcher.
    *             The syntax is based on URI Template
@@ -495,12 +495,12 @@ export interface Federatable<TContextData> {
    */
   setOrderedCollectionDispatcher<
     TObject extends Object,
-    TParam extends Record<string, string>,
+    TParam extends ParamsIncludeIdentifier,
   >(
-    identifier: string | symbol,
+    name: string | symbol,
     itemType: ObjectConstructorWithTypeId<TObject>,
     path: ParamsKeyPath<TParam>,
-    dispatcher: OrderedCollectionDispatcher<
+    dispatcher: CollectionDispatcher<
       TObject,
       RequestContext<TContextData>,
       TContextData,
@@ -1020,6 +1020,13 @@ export interface FederationFetchOptions<TContextData> {
    */
   onUnauthorized?: (request: Request) => Response | Promise<Response>;
 }
+
+/**
+ * Parameters including an identifier or handle.
+ */
+type ParamsIncludeIdentifier =
+  & Record<string, string>
+  & ({ "identifier": string } | { "handle": string });
 
 /**
  * Represents an object with a type ID, which is either a constructor or an
