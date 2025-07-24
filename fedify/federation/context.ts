@@ -18,7 +18,7 @@ import type {
 } from "../vocab/vocab.ts";
 import type { ResourceDescriptor } from "../webfinger/jrd.ts";
 import type { LookupWebFingerOptions } from "../webfinger/lookup.ts";
-import type { Federation } from "./federation.ts";
+import type { Federation, ObjectConstructorWithTypeId } from "./federation.ts";
 import type { SenderKeyPair } from "./send.ts";
 
 /**
@@ -717,6 +717,17 @@ export type ParseUriResult =
     readonly type: "featuredTags";
     readonly identifier: string;
     readonly handle: string;
+  }
+  /**
+   * The case of a custom collection URI.
+   * @since 1.8.0
+   */
+  | {
+    readonly type: "collection";
+    readonly name: string | symbol;
+    readonly class: ObjectConstructorWithTypeId<Object>;
+    readonly typeId: URL;
+    readonly values: Record<string, string>;
   };
 
 /**

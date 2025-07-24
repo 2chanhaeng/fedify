@@ -1688,6 +1688,40 @@ export class ContextImpl<TContextData> implements Context<TContextData> {
     return new URL(path, this.canonicalOrigin);
   }
 
+  getCollectionUri<TParam extends Record<string, string>>(
+    identifier: string | symbol,
+    values: TParam,
+  ): URL {
+    // Check if it's a custom collection
+    const customCallbacks =
+      this.federation.customCollectionCallbacks[identifier];
+    if (customCallbacks != null) {
+      // For custom collections, use collection: or orderedCollection: prefix
+      const collectionRouteName = `collection:${String(identifier)}`;
+      const orderedCollectionRouteName = `orderedCollection:${
+        String(identifier)
+      }`;
+
+      let path = this.federation.router.build(collectionRouteName, values);
+      if (path == null) {
+        path = this.federation.router.build(orderedCollectionRouteName, values);
+      }
+
+      if (path == null) {
+        throw new RouterError(
+          `No collection dispatcher registered for ${String(identifier)}.`,
+        );
+      }
+
+      return new URL(path, this.canonicalOrigin);
+    }
+
+    // Fall back to built-in collections (for backward compatibility)
+    throw new RouterError(
+      `No collection dispatcher registered for ${String(identifier)}.`,
+    );
+  }
+
   parseUri(uri: URL | null): ParseUriResult | null {
     if (uri == null) return null;
     if (uri.origin !== this.origin && uri.origin !== this.canonicalOrigin) {
@@ -1815,6 +1849,21 @@ export class ContextImpl<TContextData> implements Context<TContextData> {
           );
           return identifier;
         },
+      };
+    }
+    // Parse custom collections
+    const collectionRegex = /^(orderedC|c)ollection:(.*)$/;
+    const collectionMatch = route.name.match(collectionRegex);
+    if (collectionMatch) {
+      const name = collectionMatch[2];
+      const cls = this.federation.customCollectionTypeIds[name];
+      const typeId = cls.typeId;
+      return {
+        type: "collection",
+        name,
+        class: cls,
+        typeId,
+        values: route.values,
       };
     }
     return null;
