@@ -14,6 +14,7 @@ const packagesMetaData: Record<`@fedify/${string}`, string> = {
   "@fedify/amqp": metadata.version,
   "@fedify/express": metadata.version,
   "@fedify/h3": metadata.version,
+  "@fedify/next": metadata.version,
 };
 
 const logger = getLogger(["fedify", "cli", "init"]);
