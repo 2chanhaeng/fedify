@@ -10,7 +10,6 @@
  * @since 1.8.1
  */
 import type { Federation, FederationFetchOptions } from "@fedify/fedify";
-import { notFound } from "next/navigation";
 import { NextResponse } from "next/server";
 import { getXForwardedRequest } from "x-forwarded-fetch";
 
@@ -132,13 +131,14 @@ export function integrateFederation<TContextData>(
       forwardedRequest,
       {
         contextData,
-        onNotFound: notFound,
+        onNotFound,
         onNotAcceptable,
         ...errorHandlers,
       },
     );
   };
 }
+const onNotFound = () => new Response("Not found", { status: 404 });
 const onNotAcceptable = () =>
   new Response("Not acceptable", {
     status: 406,
