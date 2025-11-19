@@ -2,7 +2,8 @@
 function assertEquals<T>(actual: T, expected: T, message?: string): void {
   if (actual !== expected) {
     throw new Error(
-      message || `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`
+      message ||
+        `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`,
     );
   }
 }
@@ -35,7 +36,11 @@ Deno.test("actor-id-mismatch: ✅ Good - id: ctx.getActorUri(identifier)", () =>
 
   const diagnostics = Deno.lint.runPlugin(plugin, "test.ts", code);
 
-  assertEquals(diagnostics.length, 0, "Should not report any issues for correct usage");
+  assertEquals(
+    diagnostics.length,
+    0,
+    "Should not report any issues for correct usage",
+  );
 });
 
 Deno.test("actor-id-mismatch: ✅ Good - id: context.getActorUri(handle)", () => {
@@ -50,7 +55,11 @@ Deno.test("actor-id-mismatch: ✅ Good - id: context.getActorUri(handle)", () =>
 
   const diagnostics = Deno.lint.runPlugin(plugin, "test.ts", code);
 
-  assertEquals(diagnostics.length, 0, "Should not report any issues for correct usage with different parameter names");
+  assertEquals(
+    diagnostics.length,
+    0,
+    "Should not report any issues for correct usage with different parameter names",
+  );
 });
 
 Deno.test("actor-id-mismatch: ❌ Bad - id: new URL('https://example.com/user/john')", () => {
@@ -106,6 +115,10 @@ Deno.test("actor-id-mismatch: ❌ Bad - id using wrong context method", () => {
 
   const diagnostics = Deno.lint.runPlugin(plugin, "test.ts", code);
 
-  assertEquals(diagnostics.length, 1, "Should report one issue for using wrong context method");
+  assertEquals(
+    diagnostics.length,
+    1,
+    "Should report one issue for using wrong context method",
+  );
   assertEquals(diagnostics[0].id, "fedify-lint-test/actor-id-mismatch");
 });
