@@ -1,4 +1,8 @@
-import { assertEquals, assertGreaterOrEqual, assertStringIncludes } from "./test-helpers.ts";
+import {
+  assertEquals,
+  assertGreaterOrEqual,
+  assertStringIncludes,
+} from "./test-helpers.ts";
 import actorIdMismatch from "../rules/actor-id-mismatch.ts";
 
 const plugin: Deno.lint.Plugin = {
@@ -22,9 +26,13 @@ Deno.test("actor-id-mismatch: ✅ Good - id: ctx.getActorUri(identifier)", () =>
       });
     });
   `;
-  
+
   const diagnostics = Deno.lint.runPlugin(plugin, "test.ts", sourceCode);
-  assertEquals(diagnostics.length, 0, "Should not report any issues for correct usage");
+  assertEquals(
+    diagnostics.length,
+    0,
+    "Should not report any issues for correct usage",
+  );
 });
 
 Deno.test("actor-id-mismatch: ✅ Good - id: context.getActorUri(handle)", () => {
@@ -36,9 +44,13 @@ Deno.test("actor-id-mismatch: ✅ Good - id: context.getActorUri(handle)", () =>
       });
     });
   `;
-  
+
   const diagnostics = Deno.lint.runPlugin(plugin, "test.ts", sourceCode);
-  assertEquals(diagnostics.length, 0, "Should not report any issues with different parameter names");
+  assertEquals(
+    diagnostics.length,
+    0,
+    "Should not report any issues with different parameter names",
+  );
 });
 
 Deno.test("actor-id-mismatch: ✅ Good - object literal without new", () => {
@@ -50,9 +62,13 @@ Deno.test("actor-id-mismatch: ✅ Good - object literal without new", () => {
       };
     });
   `;
-  
+
   const diagnostics = Deno.lint.runPlugin(plugin, "test.ts", sourceCode);
-  assertEquals(diagnostics.length, 0, "Should not report issues for object literal with correct id");
+  assertEquals(
+    diagnostics.length,
+    0,
+    "Should not report issues for object literal with correct id",
+  );
 });
 
 Deno.test("actor-id-mismatch: ✅ Good - arrow function with expression body", () => {
@@ -64,9 +80,13 @@ Deno.test("actor-id-mismatch: ✅ Good - arrow function with expression body", (
       })
     );
   `;
-  
+
   const diagnostics = Deno.lint.runPlugin(plugin, "test.ts", sourceCode);
-  assertEquals(diagnostics.length, 0, "Should not report issues with expression body");
+  assertEquals(
+    diagnostics.length,
+    0,
+    "Should not report issues with expression body",
+  );
 });
 
 Deno.test("actor-id-mismatch: ✅ Good - block body with direct return", () => {
@@ -78,9 +98,13 @@ Deno.test("actor-id-mismatch: ✅ Good - block body with direct return", () => {
       });
     });
   `;
-  
+
   const diagnostics = Deno.lint.runPlugin(plugin, "test.ts", sourceCode);
-  assertEquals(diagnostics.length, 0, "Should not report issues with block body and direct return");
+  assertEquals(
+    diagnostics.length,
+    0,
+    "Should not report issues with block body and direct return",
+  );
 });
 
 Deno.test("actor-id-mismatch: ❌ Bad - id: new URL(...)", () => {
@@ -92,13 +116,17 @@ Deno.test("actor-id-mismatch: ❌ Bad - id: new URL(...)", () => {
       });
     });
   `;
-  
+
   const diagnostics = Deno.lint.runPlugin(plugin, "test.ts", sourceCode);
-  assertGreaterOrEqual(diagnostics.length, 1, "Should report an issue for hardcoded URL");
+  assertGreaterOrEqual(
+    diagnostics.length,
+    1,
+    "Should report an issue for hardcoded URL",
+  );
   assertStringIncludes(
     diagnostics[0].message,
     "ctx.getActorUri(identifier)",
-    "Error message should mention correct pattern"
+    "Error message should mention correct pattern",
   );
 });
 
@@ -112,13 +140,17 @@ Deno.test("actor-id-mismatch: ❌ Bad - id: someOtherVariable", () => {
       });
     });
   `;
-  
+
   const diagnostics = Deno.lint.runPlugin(plugin, "test.ts", sourceCode);
-  assertGreaterOrEqual(diagnostics.length, 1, "Should report an issue for wrong variable");
+  assertGreaterOrEqual(
+    diagnostics.length,
+    1,
+    "Should report an issue for wrong variable",
+  );
   assertStringIncludes(
     diagnostics[0].message,
     "ctx.getActorUri(identifier)",
-    "Error message should mention correct pattern"
+    "Error message should mention correct pattern",
   );
 });
 
@@ -131,13 +163,17 @@ Deno.test("actor-id-mismatch: ❌ Bad - wrong method call", () => {
       });
     });
   `;
-  
+
   const diagnostics = Deno.lint.runPlugin(plugin, "test.ts", sourceCode);
-  assertGreaterOrEqual(diagnostics.length, 1, "Should report an issue for wrong method");
+  assertGreaterOrEqual(
+    diagnostics.length,
+    1,
+    "Should report an issue for wrong method",
+  );
   assertStringIncludes(
     diagnostics[0].message,
     "getActorUri",
-    "Error message should mention getActorUri"
+    "Error message should mention getActorUri",
   );
 });
 
@@ -150,9 +186,13 @@ Deno.test("actor-id-mismatch: ❌ Bad - wrong parameter in getActorUri", () => {
       });
     });
   `;
-  
+
   const diagnostics = Deno.lint.runPlugin(plugin, "test.ts", sourceCode);
-  assertGreaterOrEqual(diagnostics.length, 1, "Should report an issue for wrong parameter");
+  assertGreaterOrEqual(
+    diagnostics.length,
+    1,
+    "Should report an issue for wrong parameter",
+  );
 });
 
 Deno.test("actor-id-mismatch: ❌ Bad - missing id property", () => {
@@ -163,7 +203,11 @@ Deno.test("actor-id-mismatch: ❌ Bad - missing id property", () => {
       });
     });
   `;
-  
+
   const diagnostics = Deno.lint.runPlugin(plugin, "test.ts", sourceCode);
-  assertGreaterOrEqual(diagnostics.length, 1, "Should report an issue for missing id property");
+  assertGreaterOrEqual(
+    diagnostics.length,
+    1,
+    "Should report an issue for missing id property",
+  );
 });
