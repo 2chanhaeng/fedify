@@ -1,5 +1,5 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.0";
-import actorIdRequired from "./actor-id-required.ts";
+import { assertEquals } from "./test-helpers.ts";
+import actorIdRequired from "../rules/actor-id-required.ts";
 
 Deno.test("actor-id-required: 규칙 이름 확인", () => {
   assertEquals(typeof actorIdRequired, "object");

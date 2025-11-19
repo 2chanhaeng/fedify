@@ -155,6 +155,24 @@ const actorIdMismatch: Deno.lint.Rule = {
         );
       }
 
+      // Arrow function의 expression body인 경우 (중괄호 없이 직접 반환)
+      // new Person({ id: ctx.getActorUri(identifier) }) 형태
+      if (
+        n.type === "NewExpression" && Array.isArray(n.arguments) &&
+        n.arguments.length > 0
+      ) {
+        const objArg = n.arguments[0] as Record<string, unknown>;
+        if (objArg.type === "ObjectExpression") {
+          return checkObjectExpression(objArg, ctxName, idName);
+        }
+      }
+
+      // Arrow function의 expression body인 경우 (중괄호 없이 직접 반환)
+      // { id: ctx.getActorUri(identifier) } 형태
+      if (n.type === "ObjectExpression") {
+        return checkObjectExpression(n, ctxName, idName);
+      }
+
       return false;
     }
   },
