@@ -1072,6 +1072,7 @@ test("handleInbox()", async () => {
     kvPrefixes: {
       activityIdempotence: ["_fedify", "activityIdempotence"],
       publicKey: ["_fedify", "publicKey"],
+      acceptSignatureNonce: ["_fedify", "acceptSignatureNonce"],
     },
     actorDispatcher,
     onNotFound,
@@ -1339,6 +1340,7 @@ test("handleInbox() - authentication bypass vulnerability", async () => {
     kvPrefixes: {
       activityIdempotence: ["_fedify", "activityIdempotence"],
       publicKey: ["_fedify", "publicKey"],
+      acceptSignatureNonce: ["_fedify", "acceptSignatureNonce"],
     },
     actorDispatcher,
     inboxListeners,
@@ -1880,6 +1882,7 @@ test("handleInbox() records OpenTelemetry span events", async () => {
     kvPrefixes: {
       activityIdempotence: ["activityIdempotence"],
       publicKey: ["publicKey"],
+      acceptSignatureNonce: ["acceptSignatureNonce"],
     },
     actorDispatcher,
     inboxListeners: listeners,
@@ -1994,6 +1997,7 @@ test("handleInbox() records unverified HTTP signature details", async () => {
     kvPrefixes: {
       activityIdempotence: ["activityIdempotence"],
       publicKey: ["publicKey"],
+      acceptSignatureNonce: ["acceptSignatureNonce"],
     },
     actorDispatcher,
     inboxListeners: new InboxListenerSet<void>(),
