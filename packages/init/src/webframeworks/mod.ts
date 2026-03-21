@@ -1,5 +1,6 @@
 import type { WebFrameworks } from "../types.ts";
 import astro from "./astro.ts";
+import bareBones from "./bare-bones.ts";
 import elysia from "./elysia.ts";
 import express from "./express.ts";
 import hono from "./hono.ts";
@@ -15,6 +16,7 @@ import nitro from "./nitro.ts";
  */
 const webFrameworks: WebFrameworks = {
   astro,
+  "bare-bones": bareBones,
   elysia,
   express,
   hono,
