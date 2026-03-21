@@ -14,7 +14,7 @@ import type {
   WebFramework,
 } from "../types.ts";
 import { printErrorMessage, printMessage, runSubCommand } from "../utils.ts";
-import webFrameworks from "../webframeworks.ts";
+import webFrameworks from "../webframeworks/mod.ts";
 
 const HANDLE = "john";
 const STARTUP_TIMEOUT = 30000; // 30 seconds
@@ -206,30 +206,7 @@ function determinePort(
     let stdoutData = "";
     let stderrData = "";
 
-    // Common patterns for port detection
-    const portPatterns = [
-      /listening on.*:(\d+)/i,
-      /server.*:(\d+)/i,
-      /port\s*:?\s*(\d+)/i,
-      /https?:\/\/localhost:(\d+)/i,
-      /https?:\/\/0\.0\.0\.0:(\d+)/i,
-      /https?:\/\/127\.0\.0\.1:(\d+)/i,
-      /https?:\/\/[^:]+:(\d+)/i,
-    ];
-
-    const checkForPort = (data: string) => {
-      for (const pattern of portPatterns) {
-        const match = data.match(pattern);
-        if (match && match[1]) {
-          const port = Number.parseInt(match[1], 10);
-          if (port > 0 && port < 65536) {
-            clearTimeout(timeout);
-            return port;
-          }
-        }
-      }
-      return null;
-    };
+    const checkForPort = checkPort(timeout);
 
     server.stdout.on("data", (chunk) => {
       stdoutData += chunk.toString();
@@ -258,3 +235,28 @@ function determinePort(
     });
   });
 }
+
+const checkPort = (timeout: number) => (data: string) => {
+  for (const pattern of portPatterns) {
+    const match = data.match(pattern);
+    if (match && match[1]) {
+      const port = Number.parseInt(match[1], 10);
+      if (port > 0 && port < 65536) {
+        clearTimeout(timeout);
+        return port;
+      }
+    }
+  }
+  return null;
+};
+
+// Common patterns for port detection
+const portPatterns = [
+  /listening on.*:(\d+)/i,
+  /server.*:(\d+)/i,
+  /port\s*:?\s*(\d+)/i,
+  /https?:\/\/localhost:(\d+)/i,
+  /https?:\/\/0\.0\.0\.0:(\d+)/i,
+  /https?:\/\/127\.0\.0\.1:(\d+)/i,
+  /https?:\/\/[^:]+:(\d+)/i,
+];

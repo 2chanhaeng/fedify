@@ -257,7 +257,6 @@ interactive prompts:
 [Express]: https://expressjs.com/
 [Nitro]: https://nitro.unjs.io/
 [Next.js]: https://nextjs.org/
-[Astro]: https://astro.build/
 [npm]: https://www.npmjs.com/
 [pnpm]: https://pnpm.io/
 [Yarn]: https://yarnpkg.com/
@@ -293,6 +292,8 @@ the `-w`/`--web-framework` option.  The available options are:
  -  `elysia`: [Elysia]
  -  `astro`: [Astro]
  -  `express`: [Express]
+
+[Astro]: https://astro.build/
 
 ### `-k`/`--kv-store`: key–value store
 
