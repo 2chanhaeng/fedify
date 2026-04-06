@@ -29,15 +29,15 @@ Research the web framework
 --------------------------
 
 Research the web framework for which the integration package will be
-implemented. Fedify operates as middleware via
+implemented.  Fedify operates as middleware via
 [`Federation.fetch`](../../../packages/fedify/src/federation/federation.ts).
 The critical question is whether the given framework can act as a server
-framework and supports adding middleware. Search for and investigate
-whether the relevant functionality is available. Assess feasibility based
-on the research. If research indicates implementation is not possible,
-explain the reasons in detail to the user and stop. If feasible, proceed
-to create the package. Even during package creation, it may turn out to be
-infeasible. In that case as well, explain the reasons in detail to the
+framework and supports adding middleware.  Search for and investigate
+whether the relevant functionality is available.  Assess feasibility based
+on the research.  If research indicates implementation is not possible,
+explain the reasons in detail to the user and stop.  If feasible, proceed
+to create the package.  Even during package creation, it may turn out to be
+infeasible.  In that case as well, explain the reasons in detail to the
 user and stop.
 
 
@@ -56,22 +56,22 @@ implement the package according to the framework. Since the comments in the
 template are instructions for the developer to follow, please remove them once
 the implementation is complete.
 
-Add additional definitions as appropriate based on context. Aside from the
+Add additional definitions as appropriate based on context.  Aside from the
 main integration function and the `ContextDataFactory` type, keep module
 exports to a minimum to avoid confusing users.
 
 ### Request flow
 
 When a request arrives, the integration middleware calls
-`federation.fetch()`. If Fedify has a route for the path and the client's
+`federation.fetch()`.  If Fedify has a route for the path and the client's
 `Accept` header includes an ActivityPub media type such as
 `application/activity+json`, Fedify generates and returns the JSON-LD
-response directly. Framework-side routing does not execute.
+response directly.  Framework-side routing does not execute.
 
 ### Request conversion
 
 Some frameworks define and use their own `Request` type internally instead
-of the Web API `Request`. If the target framework does so, write
+of the Web API `Request`.  If the target framework does so, write
 conversion functions within the integration package to translate between
 the Web API `Request` and the framework's native `Request`.
 
@@ -92,7 +92,7 @@ new Response("Not acceptable", {
 ### Function naming conventions
 
 A consistent naming convention for the main function has not yet been
-established, but there is an [open naming convention issue]. If the issue
+established, but there is an [open naming convention issue].  If the issue
 has been resolved by the time this skill is executed, update this section.
 As a temporary convention, respect conventions of the framework : name it
 `fedifyMiddleware` if the official documentation calls it as middleware, or
@@ -113,21 +113,21 @@ The package README.md must include the following:
 
 #### `deno.json`
 
-A _deno.json_ is required to publish to JSR.
+A *deno.json* is required to publish to JSR.
 
 #### `package.json`
 
-A _package.json_ is required to publish to npm.
+A *package.json* is required to publish to npm.
 
 #### `tsdown.config.ts`
 
-A _tsdown.config.ts_ is required for the build in Node.js and Bun
+A *tsdown.config.ts* is required for the build in Node.js and Bun
 environments.
 
 ### Other updates
 
-Refer to the “Adding a new package” section in _CONTRIBUTING.md_ and
-perform the required updates. Record the package addition in _CHANGES.md_.
+Refer to the “Adding a new package” section in *CONTRIBUTING.md* and
+perform the required updates.  Record the package addition in *CHANGES.md*.
 
 ### Tests
 
@@ -136,39 +136,39 @@ will be explained later. Therefore, testing by packages is not necessary.
 
 ### Implementation checklist
 
-1.  Create the _packages/framework/_ directory
-2.  Write _src/mod.ts_:
+1.  Create the *packages/framework/* directory
+2.  Write *src/mod.ts*:
      -  Export the main integration middleware/handler function
      -  Implement `federation.fetch()` invocation with
         `onNotFound`/`onNotAcceptable`
      -  Export the `ContextDataFactory` type
      -  Write conversion functions if the framework does not natively support
         Web API `Request`/`Response`
-3.  Write _README.md_
-4.  Write _deno.json_ (if publishing to JSR is intended)
-5.  Write _package.json_ (if publishing to npm is intended)
-6.  Write _tsdown.config.ts_ (if Node.js and Bun are supported)
+3.  Write *README.md*
+4.  Write *deno.json* (if publishing to JSR is intended)
+5.  Write *package.json* (if publishing to npm is intended)
+6.  Write *tsdown.config.ts* (if Node.js and Bun are supported)
 7.  Write tests if possible
 8.  Perform remaining updates per the “Adding a new package” section in
-    _CONTRIBUTING.md_
-9.  Record changes in _CHANGES.md_
+    *CONTRIBUTING.md*
+9.  Record changes in *CHANGES.md*
 
 
 Add to `@fedify/init`
 ---------------------
 
 Add the new package to the `@fedify/init` package so users can select the
-new framework via the `fedify init` command. Follow these steps.
+new framework via the `fedify init` command.  Follow these steps.
 
-Steps may require code modifications not explicitly listed. For example,
+Steps may require code modifications not explicitly listed.  For example,
 if the new package needs specific configuration, utility functions in
-`packages/init/src/webframeworks/utils.ts` may need updating. Make
+`packages/init/src/webframeworks/utils.ts` may need updating.  Make
 modifications consistent with the existing code style and context.
 
 ### Write the `WebFrameworkDescription` object
 
 Create a `packages/init/src/webframeworks/framework.ts` file and write the
-`WebFrameworkDescription` object, referring to <init/framework.ts>. Check
+`WebFrameworkDescription` object, referring to <init/framework.ts>.  Check
 the specifications in the comments in `packages/init/src/types.ts` for
 details.
 
@@ -204,8 +204,8 @@ const webFrameworks: Record<string, WebFrameworkDescription> = {
 ### Add templates in `packages/init/src/templates/framework/`
 
 If additional files need to be generated, add template files under the
-`packages/init/src/templates/framework/` directory. Template files must
-end with the `.tpl` extension appended to their base name. Then, in
+`packages/init/src/templates/framework/` directory.  Template files must
+end with the `.tpl` extension appended to their base name.  Then, in
 `packages/init/src/webframeworks/framework.ts`, load the templates using
 the `readTemplate` function defined in `packages/init/src/lib.ts` and add
 them to the `WebFrameworkDescription.init().files` object.
@@ -245,7 +245,7 @@ At a minimum, test the following three combinations.
 
 For details on options, run `mise test:init --help`.
 
-Some frameworks or combinations may be untestable. Analyze the test
+Some frameworks or combinations may be untestable.  Analyze the test
 results; if there are impossible combinations, identify the reason and add
 the combination and reason as a key-value pair to the
 `BANNED_LOOKUP_REASONS` object in
@@ -256,39 +256,35 @@ Add an example
 --------------
 
 Create an `examples/framework/` app and write an example for the new
-package. If Deno is supported, add a _deno.json_ based on <example/deno.json>;
-if Node.js is supported, add _package.json_ based on <example/package.jsonc>
-and _tsdown.config.ts_. Depending on the supported environments,
+package.  If Deno is supported, add a *deno.json* based on <example/deno.json>;
+if Node.js is supported, add *package.json* based on <example/package.jsonc>
+and *tsdown.config.ts*.  Depending on the supported environments,
 add the example path to the `workspace` field in
-the root _deno.json_ and to the `packages` field in
-_pnpm-workspace.yaml_.
+the root *deno.json* and to the `packages` field in
+*pnpm-workspace.yaml*.
 
 If the framework is backend-only and needs a frontend framework, and there
 is no natural pairing like solidstart-solid, use Hono.
 
 Base the example on the files under the <example/\*> path.
 <example/ARCHITECTURE.md> describes the example's architecture.
-<example/DESIGN.md> describes the example's design. Both documents are
+<example/DESIGN.md> describes the example's design.  Both documents are
 references for writing the example and are not needed in the actual
-generated example app — do not create these two files. Copy the remaining
+generated example app — do not create these two files.  Copy the remaining
 files as-is and modify as needed.
 
 If the framework does not have a prescribed entry point, use `src/main.ts`
-as the application entry point. Define and export the framework app in
-`src/app.ts`, then import and run it from the entry file. Register the
-Fedify middleware in `src/app.ts`. Import `src/logging.ts` in the entry
-file to initialize `@logtape/logtape`. When logging is needed, use the
+as the application entry point.  Define and export the framework app in
+`src/app.ts`, then import and run it from the entry file.  Register the
+Fedify middleware in `src/app.ts`.  Import `src/logging.ts` in the entry
+file to initialize `@logtape/logtape`.  When logging is needed, use the
 `getLogger` function from `@logtape/logtape` to create a logger.
-
-If there are any build files or paths other than those already added to the
-root `.gitignore`, define a separate `.gitignore` file within the example path
-to prevent git tracking them.
 
 ### Test the example with `mise test:examples`
 
-Register the new example in `examples/test-examples/mod.ts`. Read the
+Register the new example in `examples/test-examples/mod.ts`.  Read the
 comments above the example registry arrays in that file to determine
-which array is appropriate and what fields are required. Follow the
+which array is appropriate and what fields are required.  Follow the
 patterns of existing entries.
 
 While developing the example, run only the new example to iterate
@@ -298,7 +294,7 @@ quickly:
 mise test:examples framework
 ~~~~
 
-where `framework` is the `name` field of the registered entry. Pass
+where `framework` is the `name` field of the registered entry.  Pass
 `--debug` for verbose output if the test fails.
 
 After the example is complete, run the full suite once to confirm nothing
