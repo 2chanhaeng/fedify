@@ -230,7 +230,7 @@ The above command will start the interactive prompt to initialize a new Fedify
 project.  It will ask you a few questions to set up the project:
 
  -  Web framework: Bare-bones, [Hono], [Elysia], [Express], [Nitro], [Next.js],
-    or [Astro]
+    [Astro], [SolidStart], or [Nuxt]
  -  Package manager: [Deno], [Bun], [npm], [pnpm], or [Yarn]
  -  Message queue: In-Process, [Redis], [PostgreSQL], [AMQP] (e.g., [RabbitMQ]),
     or [Deno KV] (if Deno)
@@ -258,6 +258,8 @@ interactive prompts:
 [Nitro]: https://nitro.unjs.io/
 [Next.js]: https://nextjs.org/
 [Astro]: https://astro.build/
+[SolidStart]: https://start.solidjs.com/
+[Nuxt]: https://nuxt.com/
 [npm]: https://www.npmjs.com/
 [pnpm]: https://pnpm.io/
 [Yarn]: https://yarnpkg.com/
@@ -292,6 +294,8 @@ the `-w`/`--web-framework` option.  The available options are:
  -  `next`: [Next.js]
  -  `elysia`: [Elysia]
  -  `astro`: [Astro]
+ -  `nuxt`: [Nuxt]
+ -  `solidstart`: [SolidStart]
  -  `express`: [Express]
 
 ### `-k`/`--kv-store`: key–value store

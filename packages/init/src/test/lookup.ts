@@ -29,6 +29,7 @@ type LookupCasePattern = [
 ];
 const BANNED_LOOKUP_REASONS: Record<string, string> = {
   "next,*,*,*": "Next.js doesn't support remote packages",
+  "nuxt,deno,*,*": "Nuxt doesn't officially support Deno",
   "solidstart,deno,*,*": "Error occurred while loading submodules in Deno",
   "astro,deno,*,*": "Astro doesn't support remote packages in Deno",
 };

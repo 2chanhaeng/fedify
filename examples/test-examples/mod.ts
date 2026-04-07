@@ -269,6 +269,18 @@ const SERVER_EXAMPLES: ServerExample[] = [
     actor: "demo",
     readyUrl: "http://localhost:4321/",
   },
+  {
+    // Nuxt sample using @fedify/nuxt; actor path is /users/{identifier}.
+    // Requires a build step before starting.
+    name: "nuxt",
+    dir: "nuxt",
+    buildCmd: ["pnpm", "build"],
+    startCmd: ["pnpm", "start"],
+    port: 3000,
+    actor: "demo",
+    readyUrl: "http://localhost:3000/",
+    readyTimeout: 30_000,
+  },
 ];
 
 const SCRIPT_EXAMPLES: ScriptExample[] = [

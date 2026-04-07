@@ -47,6 +47,15 @@ To be released.
 [#601]: https://github.com/fedify-dev/fedify/pull/601
 [#652]: https://github.com/fedify-dev/fedify/pull/652
 
+### @fedify/nuxt
+
+ -  Added `@fedify/nuxt` package for integrating Fedify with [Nuxt].
+    It provides `fedifyMiddleware()` for registering Fedify as a Nuxt
+    server middleware, and `onError()` for handling content negotiation
+    via the Nitro error handler.
+
+[Nuxt]: https://nuxt.com/
+
 ### @fedify/init
 
  -  Fixed errors when using `fedify init` with certain web framework
@@ -54,6 +63,9 @@ To be released.
     Environment variables are now properly loaded at runtime, resolving the
     `TypeError: Cannot read properties of undefined` from `mysql2`.
     [[#649], [#656] by ChanHaeng Lee]
+ -  Added [Nuxt] as a supported web framework in `fedify init`.
+
+[Nuxt]: https://nuxt.com/
 
 [#649]: https://github.com/fedify-dev/fedify/issues/649
 [#656]: https://github.com/fedify-dev/fedify/pull/656

@@ -125,8 +125,8 @@ export async function replacePortInApp(
     return;
   }
 
-  if (wf === "nitro") {
-    // Nitro reads PORT from .env
+  if (wf === "nitro" || wf === "nuxt") {
+    // Nitro and Nuxt read PORT from .env
     await appendFile(join(dir, ".env"), `\nPORT=${newPort}\n`);
     return;
   }

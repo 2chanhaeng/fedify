@@ -103,14 +103,21 @@ const REFERENCES = {
     { text: "@fedify/hono", link: "https://jsr.io/@fedify/hono/doc" },
     { text: "@fedify/koa", link: "https://jsr.io/@fedify/koa/doc" },
     { text: "@fedify/mysql", link: "https://jsr.io/@fedify/mysql/doc" },
+    { text: "@fedify/nuxt", link: "https://jsr.io/@fedify/nuxt/doc" },
     { text: "@fedify/postgres", link: "https://jsr.io/@fedify/postgres/doc" },
     { text: "@fedify/redis", link: "https://jsr.io/@fedify/redis/doc" },
     { text: "@fedify/relay", link: "https://jsr.io/@fedify/relay/doc" },
     { text: "@fedify/sqlite", link: "https://jsr.io/@fedify/sqlite/doc" },
     { text: "@fedify/sveltekit", link: "https://jsr.io/@fedify/sveltekit/doc" },
     { text: "@fedify/testing", link: "https://jsr.io/@fedify/testing/doc" },
-    { text: "@fedify/vocab-runtime", link: "https://jsr.io/@fedify/vocab-runtime/doc" },
-    { text: "@fedify/vocab-tools", link: "https://jsr.io/@fedify/vocab-tools/doc" },
+    {
+      text: "@fedify/vocab-runtime",
+      link: "https://jsr.io/@fedify/vocab-runtime/doc",
+    },
+    {
+      text: "@fedify/vocab-tools",
+      link: "https://jsr.io/@fedify/vocab-tools/doc",
+    },
   ],
 };
 

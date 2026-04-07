@@ -1,0 +1,30 @@
+<script setup lang="ts">
+const { data: profile } = await useFetch("/api/profile/demo");
+</script>
+
+<template>
+  <main>
+    <h1>Fedify + Nuxt</h1>
+    <div v-if="profile" class="profile">
+      <img
+        :src="profile.icon"
+        alt="Profile"
+        width="80"
+        height="80"
+      />
+      <h2>{{ profile.name }}</h2>
+      <p><code>@{{ profile.preferredUsername }}@{{ profile.host }}</code></p>
+      <p>{{ profile.summary }}</p>
+      <p>
+        <strong>Followers:</strong> {{ profile.followersCount }}
+      </p>
+    </div>
+    <p>
+      Try:
+      <code>
+        curl -H "Accept: application/activity+json"
+        http://localhost:3000/users/demo
+      </code>
+    </p>
+  </main>
+</template>
