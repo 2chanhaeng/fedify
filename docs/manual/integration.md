@@ -791,6 +791,80 @@ found in the Next.js official documentation [`config` in `middleware.js`].
 [`config` in `middleware.js`]: https://nextjs.org/docs/app/api-reference/file-conventions/middleware#config-object-optional
 
 
+Nuxt
+----
+
+*This API is available since Fedify 2.2.0.*
+
+[Nuxt] is a full-stack framework built on top of Vue, Nitro, and h3.
+The *@fedify/nuxt* package provides a server handler for `server/middleware`
+and an error handler for Nitro so that Nuxt pages and Fedify endpoints can
+share the same routes with content negotiation:
+
+::: code-group
+
+~~~~ sh [Deno]
+deno add jsr:@fedify/nuxt
+~~~~
+
+~~~~ sh [npm]
+npm add @fedify/nuxt
+~~~~
+
+~~~~ sh [pnpm]
+pnpm add @fedify/nuxt
+~~~~
+
+~~~~ sh [Yarn]
+yarn add @fedify/nuxt
+~~~~
+
+~~~~ sh [Bun]
+bun add @fedify/nuxt
+~~~~
+
+:::
+
+First, configure Nitro's error handler in *nuxt.config.ts*:
+
+~~~~ typescript
+export default defineNuxtConfig({
+  nitro: {
+    errorHandler: "./server/error",  // [!code highlight]
+  },
+});
+~~~~
+
+Then, create *server/error.ts*:
+
+~~~~ typescript
+import { fedifyErrorHandler } from "@fedify/nuxt";
+
+export default fedifyErrorHandler;  // [!code highlight]
+~~~~
+
+Finally, add the Fedify middleware in *server/middleware/federation.ts*:
+
+~~~~ typescript
+import { createFederation } from "@fedify/fedify";
+import { fedifyHandler } from "@fedify/nuxt";
+
+const federation = createFederation<void>({
+  // Omitted for brevity; see the related section for details.
+});
+
+export default fedifyHandler(  // [!code highlight]
+  federation,  // [!code highlight]
+  (event, request) => void 0,  // [!code highlight]
+);  // [!code highlight]
+~~~~
+
+If you create a Nuxt project through `fedify init`, the initializer writes all
+three files for you and configures Nitro's error handler automatically.
+
+[Nuxt]: https://nuxt.com/
+
+
 Astro
 -----
 
