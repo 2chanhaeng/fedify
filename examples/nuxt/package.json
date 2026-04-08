@@ -1,0 +1,19 @@
+{
+  "name": "nuxt-example",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Fedify app with Nuxt integration",
+  "scripts": {
+    "dev": "nuxt dev --port 3000 --host 0.0.0.0",
+    "build": "nuxt build",
+    "start": "nuxt preview --port 3000 --host 0.0.0.0",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@fedify/fedify": "workspace:^",
+    "@fedify/nuxt": "workspace:^",
+    "@fedify/vocab": "workspace:^",
+    "nuxt": "catalog:"
+  }
+}

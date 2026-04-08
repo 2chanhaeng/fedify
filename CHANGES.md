@@ -47,6 +47,16 @@ To be released.
 [#601]: https://github.com/fedify-dev/fedify/pull/601
 [#652]: https://github.com/fedify-dev/fedify/pull/652
 
+### @fedify/Nuxt
+
+ -  Added `@fedify/nuxt` package for integrating Fedify with [Nuxt].
+    It provides a Nuxt module that registers Fedify as Nitro middleware so
+    Nuxt pages and ActivityPub endpoints can share the same routes.
+    [[#149]]
+
+[Nuxt]: https://nuxt.com/
+[#149]: https://github.com/fedify-dev/fedify/issues/149
+
 ### @fedify/init
 
  -  Fixed errors when using `fedify init` with certain web framework
@@ -54,6 +64,10 @@ To be released.
     Environment variables are now properly loaded at runtime, resolving the
     `TypeError: Cannot read properties of undefined` from `mysql2`.
     [[#649], [#656] by ChanHaeng Lee]
+
+ -  Added Nuxt as a supported `fedify init` web framework and bundled a Nuxt
+    example app that demonstrates route sharing between Nuxt pages and Fedify.
+    [[#149]]
 
 [#649]: https://github.com/fedify-dev/fedify/issues/649
 [#656]: https://github.com/fedify-dev/fedify/pull/656

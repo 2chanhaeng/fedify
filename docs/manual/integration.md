@@ -791,6 +791,98 @@ found in the Next.js official documentation [`config` in `middleware.js`].
 [`config` in `middleware.js`]: https://nextjs.org/docs/app/api-reference/file-conventions/middleware#config-object-optional
 
 
+Nuxt
+----
+
+*This API is available since Fedify 2.2.0.*
+
+[Nuxt] is a full-stack framework built on top of Vue and Nitro.  The
+*@fedify/nuxt* package provides a Nuxt module that integrates Fedify with
+Nuxt by registering Nitro server middleware automatically:
+
+::: code-group
+
+~~~~ sh [npm]
+npm add @fedify/nuxt @fedify/fedify
+~~~~
+
+~~~~ sh [pnpm]
+pnpm add @fedify/nuxt @fedify/fedify
+~~~~
+
+~~~~ sh [Yarn]
+yarn add @fedify/nuxt @fedify/fedify
+~~~~
+
+~~~~ sh [Bun]
+bun add @fedify/nuxt @fedify/fedify
+~~~~
+
+:::
+
+First, create your `Federation` instance in *server/federation.ts*:
+
+~~~~ typescript
+import { createFederation, MemoryKvStore } from "@fedify/fedify";
+import { Person } from "@fedify/vocab";
+
+const federation = createFederation<void>({
+  kv: new MemoryKvStore(),
+});
+
+federation.setActorDispatcher("/users/{identifier}", (ctx, identifier) => {
+  return new Person({
+    id: ctx.getActorUri(identifier),
+    preferredUsername: identifier,
+    name: identifier,
+  });
+});
+
+export default federation;
+~~~~
+
+Then, register the module in *nuxt.config.ts*:
+
+~~~~ typescript
+export default defineNuxtConfig({
+  modules: ["@fedify/nuxt"],
+  fedify: {
+    federation: "~~/server/federation",
+  },
+});
+~~~~
+
+If you need request-scoped context data, create a context factory file and
+point the module to it:
+
+~~~~ typescript
+// server/fedify-context.ts
+import type { ContextDataFactory } from "@fedify/nuxt";
+
+const createContextData: ContextDataFactory<{ ip: string | null }> = (event) => ({
+  ip: event.node.req.socket.remoteAddress ?? null,
+});
+
+export default createContextData;
+~~~~
+
+~~~~ typescript
+export default defineNuxtConfig({
+  modules: ["@fedify/nuxt"],
+  fedify: {
+    federation: "~~/server/federation",
+    contextDataFactory: "~~/server/fedify-context",
+  },
+});
+~~~~
+
+The module automatically wires Fedify into Nitro's middleware and error
+handling so your Nuxt pages and ActivityPub actor routes can share the same
+path through content negotiation.
+
+[Nuxt]: https://nuxt.com/
+
+
 Astro
 -----
 

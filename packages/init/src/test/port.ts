@@ -145,6 +145,17 @@ export async function replacePortInApp(
     return;
   }
 
+  if (wf === "nuxt") {
+    // Nuxt dev/start scripts live in package.json
+    const packageJsonPath = join(dir, "package.json");
+    const content = await readFile(packageJsonPath, "utf8");
+    await writeFile(
+      packageJsonPath,
+      content.replaceAll(String(defaultPort), String(newPort)),
+    );
+    return;
+  }
+
   printErrorMessage`Unknown framework ${wf} — cannot replace port.`;
 }
 
