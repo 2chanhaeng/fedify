@@ -35,6 +35,15 @@ To be released.
 [FEP-0837]: https://w3id.org/fep/0837
 [#578]: https://github.com/fedify-dev/fedify/issues/578
 
+### @fedify/Nuxt
+
+ -  Added `@fedify/nuxt` package for integrating Fedify with [Nuxt].
+    It provides a Nuxt module for Vite SSR configuration and
+    `fedifyMiddleware()` for server middleware, along with `onError` for
+    Nitro error handling.
+
+[Nuxt]: https://nuxt.com/
+
 ### @fedify/solidstart
 
  -  Added `@fedify/solidstart` package for integrating Fedify with

@@ -943,6 +943,82 @@ export default fedifyMiddleware(federation, (event) => undefined);  // [!code hi
 [Solid]: https://www.solidjs.com/
 
 
+Nuxt
+----
+
+*This API is available since Fedify 2.2.0.*
+
+[Nuxt] is a full-stack web framework built on top of [Vue.js], [Nitro], and
+[h3].  The *@fedify/nuxt* package provides a Nuxt module and server middleware
+to integrate Fedify with Nuxt:
+
+::: code-group
+
+~~~~ sh [npm]
+npm add @fedify/nuxt
+~~~~
+
+~~~~ sh [pnpm]
+pnpm add @fedify/nuxt
+~~~~
+
+~~~~ sh [Yarn]
+yarn add @fedify/nuxt
+~~~~
+
+~~~~ sh [Bun]
+bun add @fedify/nuxt
+~~~~
+
+:::
+
+First, add the Fedify module to your *nuxt.config.ts* and configure the Nitro
+error handler:
+
+~~~~ typescript
+import fedifyModule from "@fedify/nuxt";
+
+export default defineNuxtConfig({
+  modules: [fedifyModule],  // [!code highlight]
+  nitro: {
+    errorHandler: "~~/server/error",  // [!code highlight]
+    esbuild: {
+      options: {
+        target: "esnext",
+      },
+    },
+  },
+});
+~~~~
+
+Create the error handler in *server/error.ts*:
+
+~~~~ typescript
+import { onError } from "@fedify/nuxt";
+
+export default onError;
+~~~~
+
+Then, create a server middleware in *server/middleware/federation.ts*:
+
+~~~~ typescript
+import { createFederation } from "@fedify/fedify";
+import { fedifyMiddleware } from "@fedify/nuxt";
+
+const federation = createFederation<void>({
+  // Omitted for brevity; see the related section for details.
+});
+
+export default fedifyMiddleware(
+  federation,
+  (event, request) => undefined,  // [!code highlight]
+);
+~~~~
+
+[Nuxt]: https://nuxt.com/
+[Vue.js]: https://vuejs.org/
+
+
 Fresh
 -----
 

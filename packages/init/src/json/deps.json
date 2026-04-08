@@ -17,6 +17,7 @@
   "npm:@types/node@20": "^20.11.2",
   "npm:@types/node@22": "^22.17.0",
   "npm:@types/node@25": "^25.5.0",
+  "npm:nuxt": "^4.4.2",
   "npm:astro": "^6.1.1",
   "npm:elysia": "^1.4.28",
   "npm:eslint": "^9.0.0",

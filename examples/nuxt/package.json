@@ -1,0 +1,22 @@
+{
+  "name": "nuxt-example",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview"
+  },
+  "dependencies": {
+    "@fedify/fedify": "workspace:^",
+    "@fedify/nuxt": "workspace:^",
+    "@fedify/vocab": "workspace:^",
+    "@logtape/logtape": "catalog:",
+    "nuxt": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "@types/node": "catalog:"
+  }
+}
