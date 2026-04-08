@@ -47,6 +47,14 @@ To be released.
 [#601]: https://github.com/fedify-dev/fedify/pull/601
 [#652]: https://github.com/fedify-dev/fedify/pull/652
 
+### @fedify/nuxt
+
+ -  Added `@fedify/nuxt` package for integrating Fedify with [Nuxt].
+    It provides `fedifyHandler()` for handling federation requests
+    using Nuxt's server middleware (built on top of H3).
+
+[Nuxt]: https://nuxt.com/
+
 
 Version 2.1.3
 -------------

@@ -1,0 +1,15 @@
+{
+  "name": "@fedify/nuxt",
+  "version": "2.2.0",
+  "exports": "./src/mod.ts",
+  "imports": {
+    "h3": "npm:h3@^1.12.0",
+    "nuxt": "npm:nuxt@^3.13.0"
+  },
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "README.md"
+    ]
+  }
+}

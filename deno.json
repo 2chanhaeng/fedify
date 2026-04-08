@@ -17,6 +17,7 @@
     "./packages/koa",
     "./packages/lint",
     "./packages/mysql",
+    "./packages/nuxt",
     "./packages/postgres",
     "./packages/redis",
     "./packages/relay",
@@ -31,6 +32,7 @@
     "./examples/astro",
     "./examples/fresh",
     "./examples/hono-sample",
+    "./examples/nuxt",
     "./examples/rfc-9421-test",
     "./test/smoke/harness"
   ],

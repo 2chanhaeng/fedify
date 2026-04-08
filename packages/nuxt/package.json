@@ -1,0 +1,36 @@
+{
+  "name": "@fedify/nuxt",
+  "version": "2.2.0",
+  "description": "Nuxt framework integration for Fedify",
+  "type": "module",
+  "main": "./dist/mod.cjs",
+  "module": "./dist/mod.js",
+  "types": "./dist/mod.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/mod.d.ts",
+        "default": "./dist/mod.js"
+      },
+      "require": {
+        "types": "./dist/mod.d.cts",
+        "default": "./dist/mod.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsdown"
+  },
+  "dependencies": {
+    "@fedify/h3": "workspace:^",
+    "h3": "^1.12.0",
+    "nuxt": "^3.11.0"
+  },
+  "peerDependencies": {
+    "@fedify/fedify": "workspace:^"
+  },
+  "devDependencies": {
+    "tsdown": "^0.4.0",
+    "typescript": "^5.4.0"
+  }
+}

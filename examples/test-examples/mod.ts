@@ -194,6 +194,15 @@ const SERVER_EXAMPLES: ServerExample[] = [
     readyUrl: "http://localhost:3000/",
   },
   {
+    // Nuxt framework.
+    name: "nuxt",
+    dir: "nuxt",
+    startCmd: ["pnpm", "run", "dev"],
+    port: 3000,
+    actor: "john",
+    readyUrl: "http://localhost:3000/",
+  },
+  {
     // Koa server; actor path is /users/{identifier}.
     name: "koa",
     dir: "koa",

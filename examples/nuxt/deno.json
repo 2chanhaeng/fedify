@@ -1,0 +1,9 @@
+{
+  "exclude": [
+    "**/*.ts",
+    ".nuxt",
+    ".output",
+    "dist",
+    "node_modules"
+  ]
+}
