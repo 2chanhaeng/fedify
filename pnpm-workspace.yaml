@@ -83,7 +83,7 @@ catalog:
   fastify-plugin: ^5.0.1
   fastify: ^5.2.0
   fetch-mock: ^12.5.4
-  h3: ^1.15.0
+  h3: ^1.15.6
   hono: ^4.0.0
   ioredis: ^5.8.2
   koa: ^2.16.0

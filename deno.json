@@ -67,7 +67,7 @@
     "byte-encodings": "npm:byte-encodings@^1.0.11",
     "chalk": "npm:chalk@^5.6.2",
     "es-toolkit": "npm:es-toolkit@^1.43.0",
-    "h3": "npm:h3@^1.15.0",
+    "h3": "npm:h3@^1.15.6",
     "hono": "jsr:@hono/hono@^4.8.3",
     "ioredis": "npm:ioredis@^5.8.2",
     "json-preserve-indent": "npm:json-preserve-indent@^1.1.3",
