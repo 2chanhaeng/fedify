@@ -943,6 +943,90 @@ export default fedifyMiddleware(federation, (event) => undefined);  // [!code hi
 [Solid]: https://www.solidjs.com/
 
 
+Nuxt
+----
+
+*This API is available since Fedify 2.2.0.*
+
+[Nuxt] is a full-stack web framework built on [Vue.js] that uses [Nitro] and
+[h3] under the hood.  The *@fedify/nuxt* package provides a middleware to
+integrate Fedify with Nuxt's server middleware system:
+
+::: code-group
+
+~~~~ sh [npm]
+npm add @fedify/nuxt
+~~~~
+
+~~~~ sh [pnpm]
+pnpm add @fedify/nuxt
+~~~~
+
+~~~~ sh [Yarn]
+yarn add @fedify/nuxt
+~~~~
+
+~~~~ sh [Bun]
+bun add @fedify/nuxt
+~~~~
+
+:::
+
+First, create your federation instance in a server utility file,
+e.g., *server/utils/federation.ts*:
+
+~~~~ typescript
+import { createFederation, MemoryKvStore } from "@fedify/fedify";
+
+const federation = createFederation<void>({
+  kv: new MemoryKvStore(),
+});
+
+// ... configure your federation ...
+
+export default federation;
+~~~~
+
+Then, create a server middleware at *server/middleware/federation.ts*:
+
+~~~~ typescript
+import { fedifyMiddleware } from "@fedify/nuxt";
+import federation from "../utils/federation";
+
+export default fedifyMiddleware(
+  federation,
+  (event, request) => undefined,
+);
+~~~~
+
+Next, create an error handler at *server/error.ts*:
+
+~~~~ typescript
+import { onError } from "@fedify/nuxt";
+
+export default onError;
+~~~~
+
+Finally, configure the error handler in *nuxt.config.ts*:
+
+~~~~ typescript
+export default defineNuxtConfig({
+  nitro: {
+    errorHandler: "~/server/error",  // [!code highlight]
+  },
+});
+~~~~
+
+> [!NOTE]
+> Your app has to configure `nitro.errorHandler` in *nuxt.config.ts* to let
+> Fedify negotiate content types.  If you don't do this, Fedify will not be
+> able to respond with a proper error status code when a content negotiation
+> fails.
+
+[Nuxt]: https://nuxt.com/
+[Vue.js]: https://vuejs.org/
+
+
 Fresh
 -----
 

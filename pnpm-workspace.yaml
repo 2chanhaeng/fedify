@@ -41,6 +41,7 @@ packages:
 - examples/next14-app-router
 - examples/next15-app-router
 - examples/solidstart
+- examples/nuxt
 - examples/sveltekit-sample
 
 catalog:

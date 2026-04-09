@@ -10,6 +10,7 @@ export const WEB_FRAMEWORK = [
   "hono",
   "nitro",
   "next",
+  "nuxt",
   "elysia",
   "astro",
   "express",
