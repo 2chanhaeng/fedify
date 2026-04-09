@@ -57,6 +57,7 @@ To be released.
 
 ### @fedify/init
 
+ -  Added AdonisJS as a web framework option in `fedify init`.
  -  Fixed errors when using `fedify init` with certain web framework
     integration packages (Astro, ElysiaJS, Nitro) alongside `@fedify/mysql`.
     Environment variables are now properly loaded at runtime, resolving the
