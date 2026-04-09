@@ -18,6 +18,7 @@ packages:
 - packages/mysql
 - packages/nestjs
 - packages/next
+- packages/nuxt
 - packages/postgres
 - packages/redis
 - packages/relay

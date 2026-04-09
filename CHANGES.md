@@ -47,6 +47,14 @@ To be released.
 [#601]: https://github.com/fedify-dev/fedify/pull/601
 [#652]: https://github.com/fedify-dev/fedify/pull/652
 
+### @fedify/nuxt
+
+ -  Added `@fedify/nuxt` package for integrating Fedify with [Nuxt].
+    It provides `fedifyMiddleware()` and `onError()` for request handling
+    with Nuxt's server middleware system powered by Nitro and h3.
+
+[Nuxt]: https://nuxt.com/
+
 ### @fedify/init
 
  -  Fixed errors when using `fedify init` with certain web framework
