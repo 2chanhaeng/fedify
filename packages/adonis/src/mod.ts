@@ -51,8 +51,21 @@ export type ContextDataFactory<TContextData> = (
 ) => TContextData | Promise<TContextData>;
 
 /**
- * Create an AdonisJS middleware to integrate with the {@link Federation}
+ * Create an AdonisJS middleware class to integrate with the {@link Federation}
  * object.
+ *
+ * AdonisJS server middleware must be a class with a `handle` method.  This
+ * function returns such a class, which can be exported as the default export
+ * from a middleware file.
+ *
+ * @example
+ * ~~~~typescript
+ * // app/middleware/fedify_middleware.ts
+ * import { fedifyMiddleware } from "@fedify/adonis";
+ * import federation from "#start/federation";
+ *
+ * export default fedifyMiddleware(federation, () => undefined);
+ * ~~~~
  *
  * @template TContextData A type of the context data for the
  *                         {@link Federation} object.
@@ -60,23 +73,35 @@ export type ContextDataFactory<TContextData> = (
  * @param contextDataFactory A factory function to create context data for the
  *                           {@link Federation} object.  Defaults to returning
  *                           `undefined`.
- * @returns An AdonisJS middleware function.
+ * @returns An AdonisJS middleware class with a `handle` method.
  */
 export function fedifyMiddleware<TContextData>(
   federation: Federation<TContextData>,
   contextDataFactory: ContextDataFactory<TContextData> =
     (() => void 0 as TContextData),
-): (ctx: AdonisHttpContext, next: () => Promise<any>) => Promise<void> {
-  return async (ctx, next) => {
-    const request = fromAdonisRequest(ctx);
-    let contextData = contextDataFactory(ctx);
-    if (contextData instanceof Promise) contextData = await contextData;
-    const response = await federation.fetch(request, {
-      contextData,
-      ...integrateFetchOptions(ctx, next),
-    });
-    if (response.ok || response.redirected) {
-      await sendWebResponse(ctx, response);
+): {
+  new (): {
+    handle(
+      ctx: AdonisHttpContext,
+      next: () => Promise<unknown>,
+    ): Promise<void>;
+  };
+} {
+  return class FedifyMiddleware {
+    async handle(
+      ctx: AdonisHttpContext,
+      next: () => Promise<unknown>,
+    ): Promise<void> {
+      const request = fromAdonisRequest(ctx);
+      let contextData = contextDataFactory(ctx);
+      if (contextData instanceof Promise) contextData = await contextData;
+      const response = await federation.fetch(request, {
+        contextData,
+        ...integrateFetchOptions(ctx, next),
+      });
+      if (response.ok || response.redirected) {
+        await sendWebResponse(ctx, response);
+      }
     }
   };
 }
@@ -85,7 +110,7 @@ export default fedifyMiddleware;
 
 function integrateFetchOptions(
   ctx: AdonisHttpContext,
-  next: () => Promise<any>,
+  next: () => Promise<unknown>,
 ): Omit<FederationFetchOptions<void>, "contextData"> {
   return {
     // If the `federation` object finds a request not responsible for it

@@ -269,6 +269,23 @@ const SERVER_EXAMPLES: ServerExample[] = [
     actor: "demo",
     readyUrl: "http://localhost:4321/",
   },
+  {
+    // AdonisJS sample using @fedify/adonis; actor path is /users/{identifier}.
+    // Built with ace build; served with ace serve on port 3333.
+    name: "adonis",
+    dir: "adonis",
+    buildCmd: ["pnpm", "build"],
+    startCmd: ["pnpm", "start"],
+    port: 3333,
+    actor: "demo",
+    readyUrl: "http://localhost:3333/",
+    env: {
+      HOST: "0.0.0.0",
+      PORT: "3333",
+      NODE_ENV: "production",
+      LOG_LEVEL: "info",
+    },
+  },
 ];
 
 const SCRIPT_EXAMPLES: ScriptExample[] = [

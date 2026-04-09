@@ -31,6 +31,7 @@ packages:
 - packages/vocab-tools
 - packages/webfinger
 - docs
+- examples/adonis
 - examples/astro
 - examples/cloudflare-workers
 - examples/elysia
