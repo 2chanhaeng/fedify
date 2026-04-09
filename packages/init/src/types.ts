@@ -11,7 +11,7 @@ import type { RequiredNotNull } from "./utils.ts";
 /** Supported package manager identifiers: `"deno"`, `"pnpm"`, `"bun"`, `"yarn"`, `"npm"`. */
 export type PackageManager = typeof PACKAGE_MANAGER[number];
 
-/** Supported web framework identifiers: `"hono"`, `"nitro"`, `"next"`, `"elysia"`, `"astro"`, `"express"`. */
+/** Supported web framework identifiers: `"hono"`, `"nitro"`, `"next"`, `"elysia"`, `"astro"`, `"express"`, `"solidstart"`, `"adonisjs"`. */
 export type WebFramework = typeof WEB_FRAMEWORK[number];
 
 /** Supported message queue identifiers: `"denokv"`, `"redis"`, `"postgres"`, `"amqp"`. */
@@ -98,7 +98,8 @@ export interface WebFrameworkInitializer {
 
 /**
  * Describes a web framework integration (Hono, Express, Nitro, Next.js,
- * ElysiaJS, Astro) and how to initialize a project with it.
+ * ElysiaJS, Astro, SolidStart, AdonisJS) and how to initialize a project
+ * with it.
  */
 export interface WebFrameworkDescription {
   /** Human-readable name of the framework (e.g., `"Hono"`, `"Next.js"`). */

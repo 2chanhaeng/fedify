@@ -131,6 +131,16 @@ export async function replacePortInApp(
     return;
   }
 
+  if (wf === "adonisjs") {
+    const envPath = join(dir, ".env");
+    const content = await readFile(envPath, "utf8");
+    await writeFile(
+      envPath,
+      content.replace(/^PORT=.*$/m, `PORT=${newPort}`),
+    );
+    return;
+  }
+
   if (wf === "astro") {
     // Insert server.port into the Astro config
     const configPath = join(dir, "astro.config.ts");

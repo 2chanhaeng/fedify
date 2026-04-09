@@ -14,6 +14,7 @@ added in the future.[^1]
  -  [Fedi badge]
  -  [Ghost's ActivityPub server]
  -  [Hollo: a federated single-user microblogging software]
+ -  [Fedify–AdonisJS integration example](./adonisjs/)
  -  [Hono integration sample](./hono-sample/)
  -  [Fastify integration example](./fastify/)
  -  [Fedify–Express integration example](./express/)

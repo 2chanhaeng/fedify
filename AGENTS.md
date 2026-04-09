@@ -87,6 +87,7 @@ for the complete package list.
 
 ### Other key directories
 
+ -  *packages/adonisjs/*: AdonisJS integration package
  -  *packages/init/*: Project initializer (`@fedify/init`) for Fedify.
     Separated from `@fedify/cli` to enable standalone use.
  -  *packages/create/*: Standalone CLI (`@fedify/create`)
@@ -323,7 +324,7 @@ The monorepo uses different build processes for different packages:
     JSR and npm
 
 3.  **Database adapters and integrations**: Use tsdown for TypeScript compilation:
-     -  *packages/amqp/*, *packages/astro/*, *packages/elysia*,
+    -  *packages/adonisjs/*, *packages/amqp/*, *packages/astro/*, *packages/elysia*,
         *packages/express/*, *packages/h3/*,
         *packages/mysql/*, *packages/sqlite/*, *packages/postgres/*,
         *packages/redis/*, *packages/nestjs/*

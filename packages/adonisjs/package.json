@@ -1,0 +1,60 @@
+{
+  "name": "@fedify/adonisjs",
+  "version": "2.2.0",
+  "description": "Integrate Fedify with AdonisJS",
+  "keywords": [
+    "Fedify",
+    "Adonis",
+    "AdonisJS"
+  ],
+  "homepage": "https://fedify.dev/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fedify-dev/fedify.git",
+    "directory": "packages/adonisjs"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fedify-dev/fedify/issues"
+  },
+  "funding": [
+    "https://opencollective.com/fedify",
+    "https://github.com/sponsors/dahlia"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/",
+    "package.json"
+  ],
+  "peerDependencies": {
+    "@adonisjs/core": "catalog:",
+    "@fedify/fedify": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "scripts": {
+    "build:self": "tsdown",
+    "build": "pnpm --filter @fedify/adonisjs... run build:self",
+    "prepack": "pnpm build",
+    "prepublish": "pnpm build"
+  }
+}

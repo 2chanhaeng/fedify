@@ -1,4 +1,5 @@
 packages:
+- packages/adonisjs
 - packages/amqp
 - packages/astro
 - packages/cfworkers
@@ -30,6 +31,7 @@ packages:
 - packages/vocab-tools
 - packages/webfinger
 - docs
+- examples/adonisjs
 - examples/astro
 - examples/cloudflare-workers
 - examples/elysia
@@ -43,6 +45,7 @@ packages:
 - examples/sveltekit-sample
 
 catalog:
+  "@adonisjs/core": ^6.21.0
   "@cloudflare/workers-types": ^4.20250906.0
   "@fxts/core": ^1.20.0
   "@js-temporal/polyfill": ^0.5.1

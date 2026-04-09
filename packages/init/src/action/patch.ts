@@ -188,10 +188,18 @@ async function patchContent(
  */
 const mergeJson = (prev: string, data: object): string =>
   pipe(
-    prev ? JSON.parse(removeJsonComments(prev)) : {},
+    prev ? parseJsonWithOptionalComments(prev) : {},
     merge(data),
     formatJson,
   );
+
+const parseJsonWithOptionalComments = (jsonString: string): object => {
+  try {
+    return JSON.parse(jsonString);
+  } catch {
+    return JSON.parse(removeJsonComments(jsonString));
+  }
+};
 
 /**
  * Removes single-line (//) and multi-line (/* *\/) comments from JSON string.

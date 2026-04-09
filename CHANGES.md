@@ -8,6 +8,17 @@ Version 2.2.0
 
 To be released.
 
+### @fedify/adonisjs
+
+ -  Added the new *@fedify/adonisjs* package for integrating Fedify with
+   AdonisJS 6.x using AdonisJS server middleware.
+
+### @fedify/init
+
+ -  Added AdonisJS as a supported `fedify init` web framework.  New AdonisJS
+   projects now scaffold a slim AdonisJS app, register Fedify middleware,
+   and include a matching example app.
+
 ### @fedify/fedify
 
  -  Added `DoubleKnockOptions.maxRedirection` to configure the maximum number

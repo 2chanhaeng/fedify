@@ -1,4 +1,5 @@
 import type { WebFrameworks } from "../types.ts";
+import adonisjs from "./adonisjs.ts";
 import astro from "./astro.ts";
 import bareBones from "./bare-bones.ts";
 import elysia from "./elysia.ts";
@@ -16,6 +17,7 @@ import solidstart from "./solidstart.ts";
  * and instructions tailored to the selected package manager.
  */
 const webFrameworks: WebFrameworks = {
+  adonisjs,
   "bare-bones": bareBones,
   astro,
   elysia,
