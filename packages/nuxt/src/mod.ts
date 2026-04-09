@@ -25,6 +25,10 @@ import {
   toWebRequest,
 } from "h3";
 
+// Internal key for storing 406 Not Acceptable responses in the event context.
+// This must match the key used by @fedify/h3 for compatibility.
+const FEDIFY_RESPONSE_KEY = "__fedify_response__";
+
 /**
  * A factory function that creates the context data for the
  * {@link Federation} object.
@@ -79,7 +83,7 @@ export function fedifyMiddleware<TContextData>(
       // Store the 406 response in the event context so that the error
       // handler can use it later:
       if (response.status === 406) {
-        event.context["__fedify_response__"] = response;
+        event.context[FEDIFY_RESPONSE_KEY] = response;
         return;
       }
       await event.respondWith(response);
@@ -125,10 +129,10 @@ export async function onError(
   // endpoint /foo at all, then when a client requests /foo with
   // Accept: text/html, it should respond with 406 Not Acceptable:
   if (
-    "__fedify_response__" in event.context &&
-    event.context["__fedify_response__"].status === 406 &&
+    FEDIFY_RESPONSE_KEY in event.context &&
+    event.context[FEDIFY_RESPONSE_KEY].status === 406 &&
     error.statusCode === 404
   ) {
-    await event.respondWith(event.context["__fedify_response__"]);
+    await event.respondWith(event.context[FEDIFY_RESPONSE_KEY]);
   }
 }
