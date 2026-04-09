@@ -66,7 +66,7 @@ AdonisJS application.  Create a middleware file, e.g.,
 
 ~~~~ typescript
 import { fedifyMiddleware } from "@fedify/adonis";
-import federation from "#src/federation";
+import federation from "#start/federation";
 
 export default fedifyMiddleware(federation);
 ~~~~

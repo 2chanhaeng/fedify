@@ -78,7 +78,7 @@ export type ContextDataFactory<TContextData> = (
 export function fedifyMiddleware<TContextData>(
   federation: Federation<TContextData>,
   contextDataFactory: ContextDataFactory<TContextData> =
-    (() => void 0 as TContextData),
+    (() => undefined as TContextData),
 ): {
   new (): {
     handle(

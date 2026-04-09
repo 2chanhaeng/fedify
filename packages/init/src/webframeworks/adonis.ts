@@ -86,12 +86,12 @@ const TSCONFIG_CONTENT = JSON.stringify(
 );
 
 function getPrecommand(): string[] {
-  return [
-    "node",
-    "-e",
-    `require("fs").writeFileSync("package.json",${JSON.stringify(PACKAGE_JSON_CONTENT)});` +
-    `require("fs").writeFileSync("tsconfig.json",${JSON.stringify(TSCONFIG_CONTENT)})`,
-  ];
+  const script = [
+    `var fs = require("fs");`,
+    `fs.writeFileSync("package.json", ${JSON.stringify(PACKAGE_JSON_CONTENT)});`,
+    `fs.writeFileSync("tsconfig.json", ${JSON.stringify(TSCONFIG_CONTENT)});`,
+  ].join(" ");
+  return ["node", "-e", script];
 }
 
 const TASKS: Record<"node" | "bun", Record<string, string>> = {
