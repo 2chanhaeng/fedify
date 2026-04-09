@@ -91,6 +91,7 @@ const REFERENCES = {
   items: [
     // Don't include @fedify/cli and @fedify/lint here
     { text: "@fedify/fedify", link: "https://jsr.io/@fedify/fedify/doc" },
+    { text: "@fedify/adonis", link: "https://jsr.io/@fedify/adonis/doc" },
     { text: "@fedify/amqp", link: "https://jsr.io/@fedify/amqp/doc" },
     { text: "@fedify/astro", link: "https://jsr.io/@fedify/astro/doc" },
     { text: "@fedify/cfworkers", link: "https://jsr.io/@fedify/cfworkers/doc" },
@@ -109,8 +110,14 @@ const REFERENCES = {
     { text: "@fedify/sqlite", link: "https://jsr.io/@fedify/sqlite/doc" },
     { text: "@fedify/sveltekit", link: "https://jsr.io/@fedify/sveltekit/doc" },
     { text: "@fedify/testing", link: "https://jsr.io/@fedify/testing/doc" },
-    { text: "@fedify/vocab-runtime", link: "https://jsr.io/@fedify/vocab-runtime/doc" },
-    { text: "@fedify/vocab-tools", link: "https://jsr.io/@fedify/vocab-tools/doc" },
+    {
+      text: "@fedify/vocab-runtime",
+      link: "https://jsr.io/@fedify/vocab-runtime/doc",
+    },
+    {
+      text: "@fedify/vocab-tools",
+      link: "https://jsr.io/@fedify/vocab-tools/doc",
+    },
   ],
 };
 
