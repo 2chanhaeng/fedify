@@ -47,6 +47,18 @@ To be released.
 [#601]: https://github.com/fedify-dev/fedify/pull/601
 [#652]: https://github.com/fedify-dev/fedify/pull/652
 
+### @fedify/nuxt
+
+ -  Added `@fedify/nuxt` package for integrating Fedify with [Nuxt].
+    It provides a Nuxt module (`fedifyModule`) that auto-configures
+    Nitro and Vite for Fedify compatibility, and re-exports
+    `integrateFederation()` and `onError()` from `@fedify/h3` so that
+    Nuxt server middleware can be wired up without installing the h3
+    package directly.  [[#149] by ChanHaeng Lee]
+
+[Nuxt]: https://nuxt.com/
+[#149]: https://github.com/fedify-dev/fedify/issues/149
+
 ### @fedify/init
 
  -  Fixed errors when using `fedify init` with certain web framework

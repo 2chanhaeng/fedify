@@ -1,0 +1,5 @@
+# Nuxt build outputs
+.nuxt
+.output
+.data
+.cache
