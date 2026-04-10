@@ -35,7 +35,7 @@ federation
         name: "Fedify Demo",
         summary: "This is a Fedify Demo account.",
         preferredUsername: identifier,
-        icon: new Image({ url: new URL("/demo-profile.png", context.url) }),
+        icon: new Image({ url: new URL("/fedify-nuxt.png", context.url) }),
         url: new URL("/", context.url),
         inbox: context.getInboxUri(identifier),
         endpoints: new Endpoints({ sharedInbox: context.getInboxUri() }),
