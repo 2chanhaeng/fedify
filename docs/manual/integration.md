@@ -71,6 +71,64 @@ sequenceDiagram
 [content negotiation]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation
 
 
+AdonisJS
+--------
+
+[AdonisJS] is a TypeScript-first web framework for Node.js.  The
+*@fedify/adonis* package provides a middleware to integrate Fedify with
+AdonisJS:
+
+::: code-group
+
+~~~~ sh [npm]
+npm add @fedify/adonis
+~~~~
+
+~~~~ sh [pnpm]
+pnpm add @fedify/adonis
+~~~~
+
+~~~~ sh [Yarn]
+yarn add @fedify/adonis
+~~~~
+
+~~~~ sh [Bun]
+bun add @fedify/adonis
+~~~~
+
+:::
+
+~~~~ typescript twoslash
+// @noErrors: 2345
+import { fedifyMiddleware } from "@fedify/adonis";
+import { createFederation } from "@fedify/fedify";
+import type { HttpContext } from "@adonisjs/core/http";
+
+export const federation = createFederation<string>({
+  // Omitted for brevity; see the related section for details.
+});
+
+export default fedifyMiddleware(
+  federation,
+  (ctx: HttpContext) => "context data goes here",
+);
+~~~~
+
+Register this middleware as a server-level middleware in your AdonisJS
+application.  For example, in your *start/kernel.ts*:
+
+~~~~ typescript twoslash
+// @noErrors: 2345 2307
+import server from "@adonisjs/core/services/server";
+
+server.use([
+  () => import("#middleware/fedify_middleware"),
+]);
+~~~~
+
+[AdonisJS]: https://adonisjs.com/
+
+
 Express
 -------
 

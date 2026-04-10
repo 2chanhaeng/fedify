@@ -370,6 +370,7 @@ The repository is organized as a monorepo with the following packages:
  -  *packages/create/*: Standalone CLI (@fedify/create) for
     creating new Fedify projects.  Wraps @fedify/init.
  -  *packages/amqp/*: AMQP/RabbitMQ driver (@fedify/amqp) for Fedify.
+ -  *packages/adonis/*: AdonisJS integration (@fedify/adonis) for Fedify.
  -  *packages/astro/*: Astro integration (@fedify/astro) for Fedify.
  -  *packages/cfworkers/*: Cloudflare Workers integration (@fedify/cfworkers) for
     Fedify.

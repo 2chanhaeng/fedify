@@ -1,0 +1,33 @@
+{
+  "name": "adonis-example",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Fedify app with AdonisJS integration",
+  "imports": {
+    "#controllers/*": "./app/controllers/*.js",
+    "#exceptions/*": "./app/exceptions/*.js",
+    "#middleware/*": "./app/middleware/*.js",
+    "#start/*": "./start/*.js",
+    "#config/*": "./config/*.js"
+  },
+  "scripts": {
+    "dev": "node ace serve --hmr",
+    "build": "node ace build",
+    "start": "node bin/server.js"
+  },
+  "dependencies": {
+    "@adonisjs/core": "^6.18.0",
+    "@fedify/adonis": "workspace:^",
+    "@fedify/fedify": "workspace:^",
+    "@fedify/vocab": "workspace:^",
+    "@logtape/logtape": "catalog:",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@adonisjs/assembler": "^8.4.0",
+    "@adonisjs/tsconfig": "^1.4.0",
+    "@types/node": "^22.15.18",
+    "typescript": "^5.8.0"
+  }
+}

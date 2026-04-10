@@ -1,0 +1,24 @@
+{
+  "name": "@fedify/adonis",
+  "version": "2.2.0",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/mod.ts"
+  },
+  "imports": {
+    "@fedify/fedify": "jsr:@fedify/fedify@^2.2.0"
+  },
+  "exclude": [
+    "dist",
+    "node_modules"
+  ],
+  "publish": {
+    "exclude": [
+      "**/*.test.ts",
+      "tsdown.config.ts"
+    ]
+  },
+  "tasks": {
+    "check": "deno fmt --check && deno lint && deno check src/*.ts"
+  }
+}

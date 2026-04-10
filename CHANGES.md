@@ -35,6 +35,14 @@ To be released.
 [FEP-0837]: https://w3id.org/fep/0837
 [#578]: https://github.com/fedify-dev/fedify/issues/578
 
+### @fedify/adonis
+
+ -  Added `@fedify/adonis` package for integrating Fedify with
+    [AdonisJS].  It provides `fedifyMiddleware()` for request handling
+    with AdonisJS's middleware system.
+
+[AdonisJS]: https://adonisjs.com/
+
 ### @fedify/solidstart
 
  -  Added `@fedify/solidstart` package for integrating Fedify with
@@ -49,6 +57,7 @@ To be released.
 
 ### @fedify/init
 
+ -  Added AdonisJS as a web framework option in `fedify init`.
  -  Fixed errors when using `fedify init` with certain web framework
     integration packages (Astro, ElysiaJS, Nitro) alongside `@fedify/mysql`.
     Environment variables are now properly loaded at runtime, resolving the
