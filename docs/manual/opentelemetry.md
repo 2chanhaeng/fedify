@@ -266,6 +266,11 @@ Each span event includes attributes with detailed information:
  -  `activitypub.inbox.url`: The inbox URL where the activity was delivered
  -  `activitypub.activity.id`: The activity ID
 
+The `activitypub.activity.sent` event records delivery metadata only.  It does
+not include the full `activitypub.activity.json` payload; if you need the full
+outbound activity for auditing, store it in your application before delivery
+and correlate it with `activitypub.activity.id`.
+
 **`activitypub.delivery.failed` event attributes:**
 
  -  `activitypub.remote.host`: The remote inbox host

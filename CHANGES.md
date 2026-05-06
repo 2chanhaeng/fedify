@@ -34,6 +34,13 @@ To be released.
     remote host, attempt number, and HTTP status code when available.
     [[#316], [#619], [#755]]
 
+ -  *Breaking change*: Changed the `activitypub.activity.sent` span event to
+    record delivery metadata (`activitypub.inbox.url` and
+    `activitypub.activity.id`) instead of the full `activitypub.activity.json`
+    payload.  `FedifySpanExporter` now stores outbound records from those
+    attributes, and `TraceActivityRecord.activityJson` is present only when the
+    span event includes full activity JSON.  [[#316], [#619], [#755]]
+
 [#316]: https://github.com/fedify-dev/fedify/issues/316
 [#619]: https://github.com/fedify-dev/fedify/issues/619
 [#735]: https://github.com/fedify-dev/fedify/issues/735
