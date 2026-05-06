@@ -698,6 +698,10 @@ export class FederationImpl<TContextData>
         try {
           return getRemoteHost(new URL(message.inbox));
         } catch (_) {
+          logger.warn(
+            "Invalid inbox URL in queued outbox message: {inbox}",
+            logData,
+          );
           return undefined;
         }
       })();

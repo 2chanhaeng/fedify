@@ -3658,27 +3658,55 @@ test("FederationImpl.processQueuedTask() permanent failure", async (t) => {
   );
 
   await t.step("malformed inbox does not break failure handling", async () => {
-    const [tracerProvider, exporter] = createTestTracerProvider();
-    const { federation, queuedMessages } = setup({ tracerProvider });
+    await withLogtapeLock(async () => {
+      const [tracerProvider, exporter] = createTestTracerProvider();
+      const { federation, queuedMessages } = setup({ tracerProvider });
+      const records: LogRecord[] = [];
+      await reset();
+      try {
+        await configure({
+          sinks: {
+            buffer(record: LogRecord): void {
+              records.push(record);
+            },
+          },
+          filters: {},
+          loggers: [{ category: [], sinks: ["buffer"] }],
+        });
 
-    await federation.processQueuedTask(
-      undefined,
-      createOutboxMessage(
-        "not a url",
-        "https://example.com/activity/9",
-        ["https://gone.example/users/bob"],
-      ),
-    );
+        await federation.processQueuedTask(
+          undefined,
+          createOutboxMessage(
+            "not a url",
+            "https://example.com/activity/9",
+            ["https://gone.example/users/bob"],
+          ),
+        );
 
-    assertEquals(queuedMessages.length, 1);
-    assertEquals((queuedMessages[0] as OutboxMessage).attempt, 1);
-    const events = exporter.getEvents(
-      "activitypub.outbox",
-      "activitypub.delivery.failed",
-    );
-    assertEquals(events.length, 1);
-    assertEquals(events[0].attributes?.["activitypub.remote.host"], undefined);
-    assertEquals(events[0].attributes?.["activitypub.delivery.attempt"], 0);
+        assertEquals(queuedMessages.length, 1);
+        assertEquals((queuedMessages[0] as OutboxMessage).attempt, 1);
+        const events = exporter.getEvents(
+          "activitypub.outbox",
+          "activitypub.delivery.failed",
+        );
+        assertEquals(events.length, 1);
+        assertEquals(
+          events[0].attributes?.["activitypub.remote.host"],
+          undefined,
+        );
+        assertEquals(events[0].attributes?.["activitypub.delivery.attempt"], 0);
+        assertEquals(
+          records.some((record) =>
+            record.rawMessage ===
+              "Invalid inbox URL in queued outbox message: {inbox}" &&
+            record.properties.inbox === "not a url"
+          ),
+          true,
+        );
+      } finally {
+        await reset();
+      }
+    });
   });
 
   fetchMock.hardReset();
