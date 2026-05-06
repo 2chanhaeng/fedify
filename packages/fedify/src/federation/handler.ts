@@ -64,7 +64,7 @@ import type {
 import { routeActivity } from "./inbox.ts";
 import { KvKeyCache } from "./keycache.ts";
 import type { KvKey, KvStore } from "./kv.ts";
-import { getFederationMetrics } from "./metrics.ts";
+import { getFederationMetrics, getRemoteHost } from "./metrics.ts";
 import type { MessageQueue } from "./mq.ts";
 import { acceptsJsonLd } from "./negotiation.ts";
 
@@ -995,8 +995,8 @@ async function handleInboxInternal<TContextData>(
       });
       if (verification.verified === false) {
         const reason = verification.reason;
-        const remoteHost = "keyId" in reason
-          ? reason.keyId?.hostname
+        const remoteHost = "keyId" in reason && reason.keyId != null
+          ? getRemoteHost(reason.keyId)
           : undefined;
         getFederationMetrics(parameters.meterProvider)
           .recordSignatureVerificationFailure(reason.type, remoteHost);
@@ -1137,7 +1137,7 @@ async function handleInboxInternal<TContextData>(
     getFederationMetrics(parameters.meterProvider)
       .recordSignatureVerificationFailure(
         "actorKeyMismatch",
-        httpSigKey.id?.hostname,
+        httpSigKey.id == null ? undefined : getRemoteHost(httpSigKey.id),
       );
     logger.error(
       "The signer ({keyId}) and the actor ({actorId}) do not match.",
@@ -1170,7 +1170,7 @@ async function handleInboxInternal<TContextData>(
       getFederationMetrics(parameters.meterProvider)
         .recordSignatureVerificationFailure(
           "invalidNonce",
-          httpSigKey?.id?.hostname,
+          httpSigKey?.id == null ? undefined : getRemoteHost(httpSigKey.id),
         );
       logger.error(
         "Signature nonce verification failed (missing, expired, or replayed).",
