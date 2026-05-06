@@ -555,6 +555,10 @@ test("sendActivity() records OpenTelemetry delivery metrics", async (t) => {
       "metrics.example",
     );
     assertEquals(
+      durations[0].attributes["activitypub.activity.type"],
+      "https://www.w3.org/ns/activitystreams#Create",
+    );
+    assertEquals(
       durations[0].attributes["activitypub.delivery.success"],
       true,
     );
@@ -610,6 +614,10 @@ test("sendActivity() records OpenTelemetry delivery metrics", async (t) => {
     assertEquals(
       durations[0].attributes["activitypub.remote.host"],
       "metrics.example",
+    );
+    assertEquals(
+      durations[0].attributes["activitypub.activity.type"],
+      "https://www.w3.org/ns/activitystreams#Follow",
     );
     assertEquals(
       durations[0].attributes["activitypub.delivery.success"],

@@ -67,10 +67,7 @@ class FederationMetrics {
       deliveryAttributes["activitypub.activity.type"] = activityType;
     }
     this.deliverySent.add(1, deliveryAttributes);
-    this.deliveryDuration.record(durationMs, {
-      "activitypub.remote.host": getRemoteHost(inbox),
-      "activitypub.delivery.success": success,
-    });
+    this.deliveryDuration.record(durationMs, deliveryAttributes);
   }
 
   recordPermanentFailure(inbox: URL, statusCode: number): void {
