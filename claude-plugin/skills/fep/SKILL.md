@@ -21,7 +21,7 @@ Call that `$ID` in the steps below.  If the result does not match
     Otherwise clone the proposals repo and read the file:
 
     ~~~~ bash
-    FEP_DIR="${TMPDIR:-${TEMP:-/tmp}}/fep-repo"
+    FEP_DIR="${TMPDIR:-${TEMP:-/tmp}}/fedify-fep-repo"
     git clone https://codeberg.org/fediverse/fep.git "$FEP_DIR" 2>/dev/null \
       || git -C "$FEP_DIR" pull --ff-only
     cat "$FEP_DIR/fep/$ID/fep-$ID.md"
