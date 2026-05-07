@@ -1740,6 +1740,27 @@ test("Federation.fetch() records HTTP server request metrics", async (t) => {
   );
 
   await t.step(
+    "preserves QUERY as a known HTTP method",
+    async () => {
+      const { federation, recorder } = createTestContext();
+      const response = await federation.fetch(
+        new Request("https://example.com/users/alice", {
+          method: "QUERY",
+          headers: { "Accept": "application/activity+json" },
+        }),
+        { contextData: undefined },
+      );
+      assert(response.status >= 100);
+
+      const counts = recorder.getMeasurements(
+        "fedify.http.server.request.count",
+      );
+      assertEquals(counts.length, 1);
+      assertEquals(counts[0].attributes["http.request.method"], "QUERY");
+    },
+  );
+
+  await t.step(
     "uses the global meter provider when none is configured",
     async () => {
       const kv = new MemoryKvStore();

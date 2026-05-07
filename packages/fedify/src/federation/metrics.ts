@@ -142,6 +142,7 @@ const KNOWN_HTTP_METHODS: ReadonlySet<string> = new Set([
   "PATCH",
   "POST",
   "PUT",
+  "QUERY",
   "TRACE",
 ]);
 

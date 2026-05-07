@@ -330,8 +330,8 @@ Fedify records the following OpenTelemetry metrics:
 :   `http.request.method` and `fedify.endpoint` are always present.
     `http.request.method` is normalized to one of the standard HTTP methods
     (`CONNECT`, `DELETE`, `GET`, `HEAD`, `OPTIONS`, `PATCH`, `POST`, `PUT`,
-    `TRACE`) or `_OTHER` for any other value, so that an arbitrary client
-    cannot inflate metric cardinality by sending custom methods.
+    `QUERY`, `TRACE`) or `_OTHER` for any other value, so that an arbitrary
+    client cannot inflate metric cardinality by sending custom methods.
     `http.response.status_code` is recorded when a `Response` is produced
     (success and non-2xx alike) and omitted when the request threw an
     exception before a response could be returned.  `fedify.route.template`
