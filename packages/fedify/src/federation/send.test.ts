@@ -498,6 +498,14 @@ test("sendActivity() records OpenTelemetry span events", async (t) => {
       event.attributes["activitypub.activity.id"],
       "https://example.com/activity",
     );
+    assertEquals(
+      event.attributes["activitypub.activity.type"],
+      "https://www.w3.org/ns/activitystreams#Create",
+    );
+    assertEquals(
+      event.attributes["activitypub.actor.id"],
+      "https://example.com/person",
+    );
     assertEquals(event.attributes["activitypub.activity.json"], undefined);
 
     exporter.clear();

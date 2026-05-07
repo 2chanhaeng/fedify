@@ -99,11 +99,19 @@ function createActivitySentEvent(options: {
   activityJson?: string;
   inboxUrl: string;
   activityId?: string;
+  activityType?: string;
+  actorId?: string;
 }): TimedEvent {
   const attributes: Attributes = {
     "activitypub.inbox.url": options.inboxUrl,
     "activitypub.activity.id": options.activityId ?? "",
   };
+  if (options.activityType != null) {
+    attributes["activitypub.activity.type"] = options.activityType;
+  }
+  if (options.actorId != null) {
+    attributes["activitypub.actor.id"] = options.actorId;
+  }
   if (options.activityJson != null) {
     attributes["activitypub.activity.json"] = options.activityJson;
   }
@@ -180,6 +188,8 @@ test("FedifySpanExporter", async (t) => {
       const spanId = "span012";
       const inboxUrl = "https://example.com/users/alice/inbox";
       const activityId = "https://myserver.com/activities/789";
+      const activityType = "https://www.w3.org/ns/activitystreams#Accept";
+      const actorId = "https://myserver.com/users/bob";
 
       const span = createMockSpan({
         traceId,
@@ -189,6 +199,8 @@ test("FedifySpanExporter", async (t) => {
           createActivitySentEvent({
             inboxUrl,
             activityId,
+            activityType,
+            actorId,
           }),
         ],
       });
@@ -205,8 +217,9 @@ test("FedifySpanExporter", async (t) => {
       assertEquals(activities[0].traceId, traceId);
       assertEquals(activities[0].spanId, spanId);
       assertEquals(activities[0].direction, "outbound");
-      assertEquals(activities[0].activityType, "Unknown");
+      assertEquals(activities[0].activityType, activityType);
       assertEquals(activities[0].activityId, activityId);
+      assertEquals(activities[0].actorId, actorId);
       assertEquals(activities[0].activityJson, undefined);
       assertEquals(activities[0].inboxUrl, inboxUrl);
     },

@@ -432,18 +432,25 @@ export class FedifySpanExporter implements SpanExporter {
 
     const inboxUrl = attrs["activitypub.inbox.url"];
     const explicitActivityId = attrs["activitypub.activity.id"];
+    const explicitActivityType = attrs["activitypub.activity.type"];
+    const explicitActorId = attrs["activitypub.actor.id"];
 
     return {
       traceId,
       spanId,
       parentSpanId,
       direction: "outbound",
-      activityType,
+      activityType:
+        typeof explicitActivityType === "string" && explicitActivityType !== ""
+          ? explicitActivityType
+          : activityType,
       activityId: activityId ??
         (typeof explicitActivityId === "string" && explicitActivityId !== ""
           ? explicitActivityId
           : undefined),
-      actorId,
+      actorId: typeof explicitActorId === "string" && explicitActorId !== ""
+        ? explicitActorId
+        : actorId,
       ...(typeof activityJson === "string" ? { activityJson } : {}),
       timestamp: new Date(
         event.time[0] * 1000 + event.time[1] / 1e6,

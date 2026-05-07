@@ -1,6 +1,7 @@
 import type { Recipient } from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import {
+  type Attributes,
   type MeterProvider,
   type Span,
   SpanKind,
@@ -198,6 +199,29 @@ export function sendActivity(
 
 const MAX_ERROR_RESPONSE_BODY_BYTES = 1024;
 
+function getActivityActorId(activity: unknown): string | undefined {
+  if (!isRecord(activity)) return undefined;
+  return getIdValue(activity.actor);
+}
+
+function getIdValue(value: unknown): string | undefined {
+  if (typeof value === "string" && value !== "") return value;
+  if (value instanceof URL) return value.href;
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const id = getIdValue(item);
+      if (id != null) return id;
+    }
+    return undefined;
+  }
+  if (isRecord(value)) return getIdValue(value.id);
+  return undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value != null;
+}
+
 async function readLimitedResponseBody(
   response: Response,
   maxBytes: number,
@@ -340,10 +364,18 @@ async function sendActivityInternal(
     deliverySuccess = true;
 
     // Record the sent activity with delivery details
-    span.addEvent("activitypub.activity.sent", {
+    const eventAttributes: Attributes = {
       "activitypub.inbox.url": inbox.href,
       "activitypub.activity.id": activityId ?? "",
-    });
+    };
+    if (activityType != null) {
+      eventAttributes["activitypub.activity.type"] = activityType;
+    }
+    const actorId = getActivityActorId(activity);
+    if (actorId != null) {
+      eventAttributes["activitypub.actor.id"] = actorId;
+    }
+    span.addEvent("activitypub.activity.sent", eventAttributes);
   } finally {
     federationMetrics.recordDelivery(
       inbox,

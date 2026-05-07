@@ -265,11 +265,14 @@ Each span event includes attributes with detailed information:
 
  -  `activitypub.inbox.url`: The inbox URL where the activity was delivered
  -  `activitypub.activity.id`: The activity ID
+ -  `activitypub.activity.type` (optional): The qualified activity type URI
+ -  `activitypub.actor.id` (optional): The sender actor ID
 
-The `activitypub.activity.sent` event records delivery metadata only.  It does
-not include the full `activitypub.activity.json` payload; if you need the full
-outbound activity for auditing, store it in your application before delivery
-and correlate it with `activitypub.activity.id`.
+The `activitypub.activity.sent` event records delivery metadata and lightweight
+activity identifiers only.  It does not include the full
+`activitypub.activity.json` payload; if you need the full outbound activity for
+auditing, store it in your application before delivery and correlate it with
+`activitypub.activity.id`.
 
 **`activitypub.delivery.failed` event attributes:**
 
@@ -462,9 +465,17 @@ export class FedifyDebugExporter implements SpanExporter {
           const inboxUrl = event.attributes[
             "activitypub.inbox.url"
           ] as string | undefined;
+          const activityType = event.attributes[
+            "activitypub.activity.type"
+          ] as string | undefined;
+          const actorId = event.attributes[
+            "activitypub.actor.id"
+          ] as string | undefined;
           this.activities.push({
             direction: "outbound",
             activityId,
+            activityType,
+            actorId,
             inboxUrl,
             timestamp: new Date(span.startTime[0] * 1000),
           });
