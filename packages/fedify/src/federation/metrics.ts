@@ -7,9 +7,6 @@ import {
 } from "@opentelemetry/api";
 import metadata from "../../deno.json" with { type: "json" };
 
-const meterName = metadata.name || "@fedify/fedify";
-const meterVersion = metadata.version || undefined;
-
 class FederationMetrics {
   readonly deliverySent: Counter;
   readonly deliveryPermanentFailure: Counter;
@@ -18,7 +15,7 @@ class FederationMetrics {
   readonly inboxProcessingDuration: Histogram;
 
   constructor(meterProvider: MeterProvider) {
-    const meter = meterProvider.getMeter(meterName, meterVersion);
+    const meter = meterProvider.getMeter(metadata.name, metadata.version);
     this.deliverySent = meter.createCounter("activitypub.delivery.sent", {
       description: "ActivityPub delivery attempts.",
       unit: "{attempt}",
