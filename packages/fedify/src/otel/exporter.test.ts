@@ -1,5 +1,10 @@
 import { test } from "@fedify/fixture";
-import type { HrTime, SpanContext, SpanStatus } from "@opentelemetry/api";
+import type {
+  Attributes,
+  HrTime,
+  SpanContext,
+  SpanStatus,
+} from "@opentelemetry/api";
 import { SpanKind, SpanStatusCode, TraceFlags } from "@opentelemetry/api";
 import type { ReadableSpan, TimedEvent } from "@opentelemetry/sdk-trace-base";
 import { assertEquals } from "@std/assert";
@@ -91,18 +96,29 @@ function createActivityReceivedEvent(options: {
 }
 
 function createActivitySentEvent(options: {
-  activityJson: string;
+  activityJson?: string;
   inboxUrl: string;
   activityId?: string;
+  activityType?: string;
+  actorId?: string;
 }): TimedEvent {
+  const attributes: Attributes = {
+    "activitypub.inbox.url": options.inboxUrl,
+    "activitypub.activity.id": options.activityId ?? "",
+  };
+  if (options.activityType != null) {
+    attributes["activitypub.activity.type"] = options.activityType;
+  }
+  if (options.actorId != null) {
+    attributes["activitypub.actor.id"] = options.actorId;
+  }
+  if (options.activityJson != null) {
+    attributes["activitypub.activity.json"] = options.activityJson;
+  }
   return {
     name: "activitypub.activity.sent",
     time: [1700000000, 500000000] as HrTime,
-    attributes: {
-      "activitypub.activity.json": options.activityJson,
-      "activitypub.inbox.url": options.inboxUrl,
-      "activitypub.activity.id": options.activityId ?? "",
-    },
+    attributes,
   };
 }
 
@@ -171,14 +187,9 @@ test("FedifySpanExporter", async (t) => {
       const traceId = "trace789";
       const spanId = "span012";
       const inboxUrl = "https://example.com/users/alice/inbox";
-      const activity = {
-        "@context": "https://www.w3.org/ns/activitystreams",
-        type: "Follow",
-        id: "https://myserver.com/activities/789",
-        actor: "https://myserver.com/users/bob",
-        object: "https://example.com/users/alice",
-      };
-      const activityJson = JSON.stringify(activity);
+      const activityId = "https://myserver.com/activities/789";
+      const activityType = "https://www.w3.org/ns/activitystreams#Accept";
+      const actorId = "https://myserver.com/users/bob";
 
       const span = createMockSpan({
         traceId,
@@ -186,9 +197,10 @@ test("FedifySpanExporter", async (t) => {
         name: "activitypub.send_activity",
         events: [
           createActivitySentEvent({
-            activityJson,
             inboxUrl,
-            activityId: activity.id,
+            activityId,
+            activityType,
+            actorId,
           }),
         ],
       });
@@ -205,8 +217,10 @@ test("FedifySpanExporter", async (t) => {
       assertEquals(activities[0].traceId, traceId);
       assertEquals(activities[0].spanId, spanId);
       assertEquals(activities[0].direction, "outbound");
-      assertEquals(activities[0].activityType, activity.type);
-      assertEquals(activities[0].activityId, activity.id);
+      assertEquals(activities[0].activityType, activityType);
+      assertEquals(activities[0].activityId, activityId);
+      assertEquals(activities[0].actorId, actorId);
+      assertEquals(activities[0].activityJson, undefined);
       assertEquals(activities[0].inboxUrl, inboxUrl);
     },
   );

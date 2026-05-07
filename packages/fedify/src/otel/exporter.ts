@@ -91,9 +91,10 @@ export interface TraceActivityRecord {
   readonly actorId?: string;
 
   /**
-   * The full JSON representation of the activity.
+   * The full JSON representation of the activity, if the span event included
+   * it.
    */
-  readonly activityJson: string;
+  readonly activityJson?: string;
 
   /**
    * Whether the activity was verified (for inbound activities).
@@ -406,43 +407,51 @@ export class FedifySpanExporter implements SpanExporter {
     if (attrs == null) return null;
 
     const activityJson = attrs["activitypub.activity.json"];
-    if (typeof activityJson !== "string") return null;
 
     let activityType = "Unknown";
     let activityId: string | undefined;
     let actorId: string | undefined;
 
-    try {
-      const activity = JSON.parse(activityJson);
-      activityType = activity.type ?? "Unknown";
-      activityId = activity.id;
-      // Extract actor ID from activity
-      if (typeof activity.actor === "string") {
-        actorId = activity.actor;
-      } else if (
-        activity.actor != null && typeof activity.actor.id === "string"
-      ) {
-        actorId = activity.actor.id;
+    if (typeof activityJson === "string") {
+      try {
+        const activity = JSON.parse(activityJson);
+        activityType = activity.type ?? "Unknown";
+        activityId = activity.id;
+        // Extract actor ID from activity
+        if (typeof activity.actor === "string") {
+          actorId = activity.actor;
+        } else if (
+          activity.actor != null && typeof activity.actor.id === "string"
+        ) {
+          actorId = activity.actor.id;
+        }
+      } catch {
+        // Ignore JSON parse errors
       }
-    } catch {
-      // Ignore JSON parse errors
     }
 
     const inboxUrl = attrs["activitypub.inbox.url"];
     const explicitActivityId = attrs["activitypub.activity.id"];
+    const explicitActivityType = attrs["activitypub.activity.type"];
+    const explicitActorId = attrs["activitypub.actor.id"];
 
     return {
       traceId,
       spanId,
       parentSpanId,
       direction: "outbound",
-      activityType,
+      activityType:
+        typeof explicitActivityType === "string" && explicitActivityType !== ""
+          ? explicitActivityType
+          : activityType,
       activityId: activityId ??
         (typeof explicitActivityId === "string" && explicitActivityId !== ""
           ? explicitActivityId
           : undefined),
-      actorId,
-      activityJson,
+      actorId: typeof explicitActorId === "string" && explicitActorId !== ""
+        ? explicitActorId
+        : actorId,
+      ...(typeof activityJson === "string" ? { activityJson } : {}),
       timestamp: new Date(
         event.time[0] * 1000 + event.time[1] / 1e6,
       ).toISOString(),

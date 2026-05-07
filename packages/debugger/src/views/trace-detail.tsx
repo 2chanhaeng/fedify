@@ -168,10 +168,12 @@ export const TraceDetailPage: FC<TraceDetailPageProps> = (
                 </tbody>
               </table>
 
-              <details>
-                <summary>Activity JSON</summary>
-                <pre>{formatJson(activity.activityJson)}</pre>
-              </details>
+              {activity.activityJson == null ? null : (
+                <details>
+                  <summary>Activity JSON</summary>
+                  <pre>{formatJson(activity.activityJson)}</pre>
+                </details>
+              )}
             </div>
           ))
         )}

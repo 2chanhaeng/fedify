@@ -1,6 +1,8 @@
 import type { Recipient } from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import {
+  type Attributes,
+  type MeterProvider,
   type Span,
   SpanKind,
   SpanStatusCode,
@@ -12,6 +14,7 @@ import {
   doubleKnock,
   type HttpMessageSignaturesSpecDeterminer,
 } from "../sig/http.ts";
+import { getDurationMs, getFederationMetrics } from "./metrics.ts";
 
 /**
  * Parameters for {@link extractInboxes}.
@@ -141,6 +144,13 @@ export interface SendActivityParameters {
   readonly specDeterminer?: HttpMessageSignaturesSpecDeterminer;
 
   /**
+   * The meter provider for recording metrics.
+   * If omitted, the global meter provider is used.
+   * @since 2.3.0
+   */
+  readonly meterProvider?: MeterProvider;
+
+  /**
    * The tracer provider for tracing the request.
    * If omitted, the global tracer provider is used.
    * @since 1.3.0
@@ -189,6 +199,29 @@ export function sendActivity(
 
 const MAX_ERROR_RESPONSE_BODY_BYTES = 1024;
 
+function getActivityActorId(activity: unknown): string | undefined {
+  if (!isRecord(activity)) return undefined;
+  return getIdValue(activity.actor);
+}
+
+function getIdValue(value: unknown): string | undefined {
+  if (typeof value === "string" && value !== "") return value;
+  if (value instanceof URL) return value.href;
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const id = getIdValue(item);
+      if (id != null) return id;
+    }
+    return undefined;
+  }
+  if (isRecord(value)) return getIdValue(value.id);
+  return undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value != null;
+}
+
 async function readLimitedResponseBody(
   response: Response,
   maxBytes: number,
@@ -232,15 +265,20 @@ async function sendActivityInternal(
   {
     activity,
     activityId,
+    activityType,
     keys,
     inbox,
     headers,
     specDeterminer,
+    meterProvider,
     tracerProvider,
   }: SendActivityParameters,
   span: Span,
 ): Promise<void> {
   const logger = getLogger(["fedify", "federation", "outbox"]);
+  const federationMetrics = getFederationMetrics(meterProvider);
+  const started = performance.now();
+  let deliverySuccess = false;
   headers = new Headers(headers);
   headers.set("Content-Type", "application/activity+json");
   const request = new Request(inbox, {
@@ -284,44 +322,68 @@ async function sendActivityInternal(
         error,
       },
     );
+    federationMetrics.recordDelivery(
+      inbox,
+      getDurationMs(started),
+      false,
+      activityType,
+    );
     throw error;
   }
-  if (!response.ok) {
-    let error: string;
-    try {
-      error = await readLimitedResponseBody(
-        response,
-        MAX_ERROR_RESPONSE_BODY_BYTES,
+  try {
+    if (!response.ok) {
+      let error: string;
+      try {
+        error = await readLimitedResponseBody(
+          response,
+          MAX_ERROR_RESPONSE_BODY_BYTES,
+        );
+      } catch (_) {
+        error = "";
+      }
+      logger.error(
+        "Failed to send activity {activityId} to {inbox} ({status} " +
+          "{statusText}):\n{error}",
+        {
+          activityId,
+          inbox: inbox.href,
+          status: response.status,
+          statusText: response.statusText,
+          error,
+        },
       );
-    } catch (_) {
-      error = "";
-    }
-    logger.error(
-      "Failed to send activity {activityId} to {inbox} ({status} " +
-        "{statusText}):\n{error}",
-      {
-        activityId,
-        inbox: inbox.href,
-        status: response.status,
-        statusText: response.statusText,
+      throw new SendActivityError(
+        inbox,
+        response.status,
+        `Failed to send activity ${activityId} to ${inbox.href} ` +
+          `(${response.status} ${response.statusText}):\n${error}`,
         error,
-      },
-    );
-    throw new SendActivityError(
+      );
+    }
+
+    deliverySuccess = true;
+
+    // Record the sent activity with delivery details
+    const eventAttributes: Attributes = {
+      "activitypub.inbox.url": inbox.href,
+      "activitypub.activity.id": activityId ?? "",
+    };
+    if (activityType != null) {
+      eventAttributes["activitypub.activity.type"] = activityType;
+    }
+    const actorId = getActivityActorId(activity);
+    if (actorId != null) {
+      eventAttributes["activitypub.actor.id"] = actorId;
+    }
+    span.addEvent("activitypub.activity.sent", eventAttributes);
+  } finally {
+    federationMetrics.recordDelivery(
       inbox,
-      response.status,
-      `Failed to send activity ${activityId} to ${inbox.href} ` +
-        `(${response.status} ${response.statusText}):\n${error}`,
-      error,
+      getDurationMs(started),
+      deliverySuccess,
+      activityType,
     );
   }
-
-  // Record the sent activity with delivery details
-  span.addEvent("activitypub.activity.sent", {
-    "activitypub.activity.json": JSON.stringify(activity),
-    "activitypub.inbox.url": inbox.href,
-    "activitypub.activity.id": activityId ?? "",
-  });
 }
 
 /**
