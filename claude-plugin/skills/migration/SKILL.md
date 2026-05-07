@@ -11,7 +11,7 @@ Help the user migrate Fedify code from “$ARGUMENTS”.
 
 Steps:
 
-1.  Fetch the CHANGES.md from the repo to identify breaking changes between
+1.  Fetch *CHANGES.md* from the repo to identify breaking changes between
     the versions in question:
     `https://raw.githubusercontent.com/fedify-dev/fedify/refs/heads/main/CHANGES.md`
 2.  List every breaking change that affects the user's code range.
@@ -26,5 +26,5 @@ Key migration hints:
 
  -  `@fedify/fedify/vocab` → `@fedify/vocab` (dedicated package)
  -  `@fedify/fedify/runtime` → `@fedify/vocab-runtime`
- -  In-tree `src/webfinger` → `@fedify/webfinger`
- -  `src/x/` exports removed in 2.0.0
+ -  In-tree *src/webfinger* → `@fedify/webfinger`
+ -  *src/x/* exports removed in 2.0.0
