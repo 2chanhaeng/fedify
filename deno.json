@@ -87,8 +87,10 @@
   "exclude": [
     "**/pnpm-lock.yaml",
     ".agents/skills/",
+    ".claude-plugin/",
     ".claude/skills/",
     ".github/",
+    "claude-plugin/",
     "docs/",
     "pnpm-lock.yaml",
     "pnpm-workspace.yaml"

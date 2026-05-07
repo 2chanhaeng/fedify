@@ -45,6 +45,7 @@ proper_nouns = [
   "BotKit",
   "BrowserPub",
   "bun-types",
+  "Claude Code",
   "cloudflared",
   "Cloudflare Tunnel",
   "Cloudflare Workers",

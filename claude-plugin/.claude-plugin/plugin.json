@@ -1,0 +1,12 @@
+{
+  "name": "fedify",
+  "description": "ActivityPub development tools powered by Fedify",
+  "version": "2.3.0",
+  "author": {
+    "name": "Hong Minhee",
+    "email": "hong@minhee.org"
+  },
+  "homepage": "https://fedify.dev/",
+  "repository": "https://github.com/fedify-dev/fedify",
+  "license": "MIT"
+}
