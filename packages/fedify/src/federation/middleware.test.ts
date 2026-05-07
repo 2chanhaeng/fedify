@@ -1490,6 +1490,13 @@ test("Federation.fetch() records HTTP server request metrics", async (t) => {
       () => ({ items: [] }),
     );
 
+    federation.setCollectionDispatcher(
+      "custom-collection",
+      vocab.Object,
+      "/users/{identifier}/custom/{id}",
+      () => ({ items: [] }),
+    );
+
     federation.setInboxListeners("/users/{identifier}/inbox", "/inbox");
 
     return { federation, recorder };
@@ -1663,6 +1670,31 @@ test("Federation.fetch() records HTTP server request metrics", async (t) => {
       );
       assertEquals(durations.length, 1);
       assertEquals(durations[0].attributes["fedify.endpoint"], "actor");
+    },
+  );
+
+  await t.step(
+    "collapses user-defined collection dispatchers to endpoint=collection",
+    async () => {
+      const { federation, recorder } = createTestContext();
+      const response = await federation.fetch(
+        new Request("https://example.com/users/alice/custom/1", {
+          method: "GET",
+          headers: { "Accept": "application/activity+json" },
+        }),
+        { contextData: undefined },
+      );
+      assertEquals(response.status, 200);
+
+      const counts = recorder.getMeasurements(
+        "fedify.http.server.request.count",
+      );
+      assertEquals(counts.length, 1);
+      assertEquals(counts[0].attributes["fedify.endpoint"], "collection");
+      assertEquals(
+        counts[0].attributes["fedify.route.template"],
+        "/users/{identifier}/custom/{id}",
+      );
     },
   );
 
