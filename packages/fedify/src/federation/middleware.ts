@@ -1366,6 +1366,8 @@ export class FederationImpl<TContextData>
     const requestId = getRequestId(request);
     return withContext({ requestId }, async () => {
       const tracer = this._getTracer();
+      const metricState: HttpMetricState = {};
+      const metricStart = performance.now();
       return await tracer.startActiveSpan(
         request.method,
         {
@@ -1392,11 +1394,19 @@ export class FederationImpl<TContextData>
                   ...options,
                   span,
                   tracer,
+                  metricState,
                 });
                 if (acceptsJsonLd(request)) {
                   response.headers.set("Vary", "Accept");
                 }
               } catch (error) {
+                getFederationMetrics(this.meterProvider)
+                  .recordHttpServerRequest(
+                    request.method,
+                    metricState.endpoint ?? "error",
+                    getDurationMs(metricStart),
+                    { routeTemplate: metricState.routeTemplate },
+                  );
                 span.setStatus({
                   code: SpanStatusCode.ERROR,
                   message: `${error}`,
@@ -1409,6 +1419,15 @@ export class FederationImpl<TContextData>
                 );
                 throw error;
               }
+              getFederationMetrics(this.meterProvider).recordHttpServerRequest(
+                request.method,
+                metricState.endpoint ?? "error",
+                getDurationMs(metricStart),
+                {
+                  statusCode: response.status,
+                  routeTemplate: metricState.routeTemplate,
+                },
+              );
               if (span.isRecording()) {
                 span.setAttribute(
                   ATTR_HTTP_RESPONSE_STATUS_CODE,
@@ -1453,14 +1472,24 @@ export class FederationImpl<TContextData>
       contextData,
       span,
       tracer,
-    }: FederationFetchOptions<TContextData> & { span: Span; tracer: Tracer },
+      metricState,
+    }: FederationFetchOptions<TContextData> & {
+      span: Span;
+      tracer: Tracer;
+      metricState: HttpMetricState;
+    },
   ): Promise<Response> {
     onNotFound ??= notFound;
     onNotAcceptable ??= notAcceptable;
     onUnauthorized ??= unauthorized;
     const url = new URL(request.url);
     const route = this.router.route(url.pathname);
-    if (route == null) return await onNotFound(request);
+    if (route == null) {
+      metricState.endpoint = "not_found";
+      return await onNotFound(request);
+    }
+    metricState.routeTemplate = route.template;
+    metricState.endpoint = getEndpointCategory(route.name);
     span.updateName(`${request.method} ${route.template}`);
     let context = this.#createContext(request, contextData);
     const routeName = route.name.replace(/:.*$/, "");
@@ -1489,6 +1518,7 @@ export class FederationImpl<TContextData>
 
     // Routes that require JSON-LD Accepts header:
     if (request.method !== "POST" && !acceptsJsonLd(request)) {
+      metricState.endpoint = "not_acceptable";
       return await onNotAcceptable(request);
     }
     switch (routeName) {
@@ -1724,10 +1754,54 @@ export class FederationImpl<TContextData>
         });
       }
       default: {
+        metricState.endpoint = "not_found";
         const response = onNotFound(request);
         return response instanceof Promise ? await response : response;
       }
     }
+  }
+}
+
+interface HttpMetricState {
+  endpoint?: string;
+  routeTemplate?: string;
+}
+
+function getEndpointCategory(routeName: string): string {
+  if (routeName.startsWith("object:")) return "object";
+  if (
+    routeName.startsWith("collection:") ||
+    routeName.startsWith("orderedCollection:")
+  ) {
+    return "collection";
+  }
+  if (routeName.startsWith(ACTOR_ALIAS_PREFIX)) return "actor";
+  switch (routeName) {
+    case "webfinger":
+      return "webfinger";
+    case "nodeInfoJrd":
+    case "nodeInfo":
+      return "nodeinfo";
+    case "actor":
+      return "actor";
+    case "inbox":
+      return "inbox";
+    case "sharedInbox":
+      return "shared_inbox";
+    case "outbox":
+      return "outbox";
+    case "following":
+      return "following";
+    case "followers":
+      return "followers";
+    case "liked":
+      return "liked";
+    case "featured":
+      return "featured";
+    case "featuredTags":
+      return "featured_tags";
+    default:
+      return "not_found";
   }
 }
 

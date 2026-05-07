@@ -13,6 +13,8 @@ class FederationMetrics {
   readonly signatureVerificationFailure: Counter;
   readonly deliveryDuration: Histogram;
   readonly inboxProcessingDuration: Histogram;
+  readonly httpServerRequestCount: Counter;
+  readonly httpServerRequestDuration: Histogram;
 
   constructor(meterProvider: MeterProvider) {
     const meter = meterProvider.getMeter(metadata.name, metadata.version);
@@ -45,6 +47,20 @@ class FederationMetrics {
       "activitypub.inbox.processing_duration",
       {
         description: "Duration of ActivityPub inbox listener processing.",
+        unit: "ms",
+      },
+    );
+    this.httpServerRequestCount = meter.createCounter(
+      "fedify.http.server.request.count",
+      {
+        description: "HTTP requests handled by Federation.fetch().",
+        unit: "{request}",
+      },
+    );
+    this.httpServerRequestDuration = meter.createHistogram(
+      "fedify.http.server.request.duration",
+      {
+        description: "Duration of HTTP requests handled by Federation.fetch().",
         unit: "ms",
       },
     );
@@ -95,6 +111,43 @@ class FederationMetrics {
       "activitypub.activity.type": activityType,
     });
   }
+
+  recordHttpServerRequest(
+    method: string,
+    endpoint: string,
+    durationMs: number,
+    options: { statusCode?: number; routeTemplate?: string } = {},
+  ): void {
+    const attributes: Attributes = {
+      "http.request.method": normalizeHttpMethod(method),
+      "fedify.endpoint": endpoint,
+    };
+    if (options.statusCode != null) {
+      attributes["http.response.status_code"] = options.statusCode;
+    }
+    if (options.routeTemplate != null) {
+      attributes["fedify.route.template"] = options.routeTemplate;
+    }
+    this.httpServerRequestCount.add(1, attributes);
+    this.httpServerRequestDuration.record(durationMs, attributes);
+  }
+}
+
+const KNOWN_HTTP_METHODS: ReadonlySet<string> = new Set([
+  "CONNECT",
+  "DELETE",
+  "GET",
+  "HEAD",
+  "OPTIONS",
+  "PATCH",
+  "POST",
+  "PUT",
+  "TRACE",
+]);
+
+function normalizeHttpMethod(method: string): string {
+  const upper = method.toUpperCase();
+  return KNOWN_HTTP_METHODS.has(upper) ? upper : "_OTHER";
 }
 
 const federationMetrics = new WeakMap<MeterProvider, FederationMetrics>();
