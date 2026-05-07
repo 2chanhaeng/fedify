@@ -39,7 +39,7 @@ if (cmd === "pre") {
 } else if (cmd === "post") {
   if (existsSync(sentinel)) {
     rmSync(skillsPath, { recursive: true });
-    symlinkSync("../../../claude-plugin/skills/fedify", skillsPath);
+    symlinkSync("../../../claude-plugin/skills/fedify", skillsPath, "dir");
     unlinkSync(sentinel);
   }
 }
