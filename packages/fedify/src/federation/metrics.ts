@@ -62,6 +62,26 @@ class FederationMetrics {
       {
         description: "Duration of HTTP requests handled by Federation.fetch().",
         unit: "ms",
+        advice: {
+          // Mirror the OpenTelemetry HTTP server semantic-conventions
+          // recommended buckets, expressed in milliseconds.
+          explicitBucketBoundaries: [
+            5,
+            10,
+            25,
+            50,
+            75,
+            100,
+            250,
+            500,
+            750,
+            1000,
+            2500,
+            5000,
+            7500,
+            10000,
+          ],
+        },
       },
     );
   }
