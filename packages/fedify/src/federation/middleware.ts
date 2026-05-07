@@ -1762,12 +1762,30 @@ export class FederationImpl<TContextData>
   }
 }
 
+type FedifyEndpoint =
+  | "webfinger"
+  | "nodeinfo"
+  | "actor"
+  | "inbox"
+  | "shared_inbox"
+  | "outbox"
+  | "object"
+  | "following"
+  | "followers"
+  | "liked"
+  | "featured"
+  | "featured_tags"
+  | "collection"
+  | "not_found"
+  | "not_acceptable"
+  | "error";
+
 interface HttpMetricState {
-  endpoint?: string;
+  endpoint?: FedifyEndpoint;
   routeTemplate?: string;
 }
 
-function getEndpointCategory(routeName: string): string {
+function getEndpointCategory(routeName: string): FedifyEndpoint {
   if (routeName.startsWith("object:")) return "object";
   if (
     routeName.startsWith("collection:") ||
