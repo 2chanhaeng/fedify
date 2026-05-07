@@ -21,9 +21,10 @@ Call that `$ID` in the steps below.  If the result does not match
     Otherwise clone the proposals repo and read the file:
 
     ~~~~ bash
-    git clone https://codeberg.org/fediverse/fep.git /tmp/fep-repo 2>/dev/null \
-      || git -C /tmp/fep-repo pull --ff-only
-    cat /tmp/fep-repo/fep/$ID/fep-$ID.md
+    FEP_DIR="${TMPDIR:-${TEMP:-/tmp}}/fep-repo"
+    git clone https://codeberg.org/fediverse/fep.git "$FEP_DIR" 2>/dev/null \
+      || git -C "$FEP_DIR" pull --ff-only
+    cat "$FEP_DIR/fep/$ID/fep-$ID.md"
     ~~~~
 
 2.  Summarise: status, what problem it solves, and what extensions it
