@@ -25,7 +25,7 @@ if (cmd === "pre") {
   const stat = lstatSync(skillsPath);
   if (stat.isSymbolicLink()) {
     const target = realpathSync(skillsPath);
-    rmSync(skillsPath, { recursive: true });
+    unlinkSync(skillsPath);
     cpSync(target, skillsPath, { recursive: true });
     writeFileSync(sentinel, "");
   } else if (!stat.isDirectory()) {
@@ -38,7 +38,7 @@ if (cmd === "pre") {
   }
 } else if (cmd === "post") {
   if (existsSync(sentinel)) {
-    rmSync(skillsPath, { recursive: true });
+    rmSync(skillsPath, { recursive: true, force: true });
     symlinkSync("../../../claude-plugin/skills/fedify", skillsPath, "dir");
     unlinkSync(sentinel);
   }
