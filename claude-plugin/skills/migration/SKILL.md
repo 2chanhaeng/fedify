@@ -9,7 +9,9 @@ argument-hint: <from-version> [to-version]
 
 Help the user migrate Fedify code from “$ARGUMENTS”.
 
-Steps:
+
+Migration workflow
+------------------
 
 1.  Fetch *CHANGES.md* from the repo to identify breaking changes between
     the versions in question:
@@ -22,7 +24,9 @@ Steps:
 5.  Note any dependency changes (e.g., vocabulary moved to `@fedify/vocab`,
     runtime to `@fedify/vocab-runtime`).
 
-Key migration hints:
+
+Key migration hints
+-------------------
 
  -  `@fedify/fedify/vocab` → `@fedify/vocab` (dedicated package)
  -  `@fedify/fedify/runtime` → `@fedify/vocab-runtime`
