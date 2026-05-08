@@ -22,6 +22,16 @@ const sentinel = join(root, "..", ".skills-fedify-symlink");
 const [cmd] = process.argv.slice(2);
 
 if (cmd === "pre") {
+  // If a previous pack run was interrupted after prepack but before postpack,
+  // skillsPath is a real directory and the sentinel still exists.  Restore
+  // the symlink first so the conversion below can run cleanly and pick up
+  // any source changes that happened in the interim.
+  if (existsSync(sentinel)) {
+    rmSync(skillsPath, { recursive: true, force: true });
+    symlinkSync("../../../claude-plugin/skills/fedify", skillsPath, "dir");
+    unlinkSync(sentinel);
+  }
+
   const stat = lstatSync(skillsPath);
   if (stat.isSymbolicLink()) {
     const target = realpathSync(skillsPath);
