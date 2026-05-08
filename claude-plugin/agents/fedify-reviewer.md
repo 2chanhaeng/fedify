@@ -37,7 +37,9 @@ When reviewing Fedify code, check each of the following in order:
 
 *Inbox listeners*
 
- -  Are all expected activity types registered with `.on()`?
+ -  Are the activity types this application is designed to handle
+    registered with `.on()`?  (Only types the app actually needs — not
+    necessarily every ActivityPub activity type.)
  -  If unregistered types must be observed (rather than answered with HTTP 202),
     is there a catch-all `.on(Activity, ...)` listener?
  -  Is `.onError()` used for handler-level error logging?
@@ -50,8 +52,9 @@ When reviewing Fedify code, check each of the following in order:
 
 *Vocabulary and imports*
 
- -  Are types imported from `@fedify/vocab`, not from
-    `@fedify/fedify/vocab` (deprecated shim)?
+ -  Are there any deprecated import paths in use (`@fedify/fedify/vocab`,
+    `@fedify/fedify/runtime`, `src/webfinger`, `src/x/`, etc.)?  If so,
+    invoke the `/fedify:migration` skill for the full list of replacements.
  -  Are `fromJsonLd()` / `toJsonLd()` calls awaited?
 
 *Activity IDs*
