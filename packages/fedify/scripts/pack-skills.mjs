@@ -6,6 +6,7 @@ import {
   existsSync,
   lstatSync,
   realpathSync,
+  renameSync,
   rmSync,
   symlinkSync,
   unlinkSync,
@@ -35,8 +36,11 @@ if (cmd === "pre") {
   const stat = lstatSync(skillsPath);
   if (stat.isSymbolicLink()) {
     const target = realpathSync(skillsPath);
+    const tempPath = `${skillsPath}.tmp`;
+    rmSync(tempPath, { recursive: true, force: true });
+    cpSync(target, tempPath, { recursive: true });
     unlinkSync(skillsPath);
-    cpSync(target, skillsPath, { recursive: true });
+    renameSync(tempPath, skillsPath);
     writeFileSync(sentinel, "");
   } else if (!stat.isDirectory()) {
     throw new Error(
