@@ -174,7 +174,8 @@
   "scripts": {
     "build:self": "tsdown",
     "build": "pnpm --filter @fedify/fedify... run build:self",
-    "prepack": "pnpm build",
+    "prepack": "pnpm build && node scripts/pack-skills.mjs pre",
+    "postpack": "node scripts/pack-skills.mjs post",
     "prepublish": "pnpm build",
     "pretest": "pnpm build",
     "test": "cd dist/ && node --test",

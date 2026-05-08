@@ -1,0 +1,18 @@
+{
+  "name": "fedify",
+  "owner": {
+    "name": "Hong Minhee",
+    "email": "hong@minhee.org"
+  },
+  "description": "Official Fedify plugin for Claude Code: ActivityPub development tools",
+  "plugins": [
+    {
+      "name": "fedify",
+      "source": "./claude-plugin",
+      "description": "Fedify ActivityPub development tools: skills, agents, and slash commands",
+      "homepage": "https://fedify.dev/",
+      "repository": "https://github.com/fedify-dev/fedify",
+      "license": "MIT"
+    }
+  ]
+}

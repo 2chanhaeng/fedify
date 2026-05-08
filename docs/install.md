@@ -361,10 +361,21 @@ common pitfalls, and recommended patterns.  The file lives inside the
 `@fedify/fedify` package itself, so the only remaining step is exposing it
 to your agent's skills directory.
 
-[SKILL.md]: https://github.com/fedify-dev/fedify/blob/main/packages/fedify/skills/fedify/SKILL.md
+[SKILL.md]: https://github.com/fedify-dev/fedify/blob/main/claude-plugin/skills/fedify/SKILL.md
 [Claude Code]: https://claude.com/product/claude-code
 [Codex]: https://developers.openai.com/codex
 [OpenCode]: https://opencode.ai/
+
+### Claude Code plugin
+
+Install the Fedify plugin from the Claude Code marketplace.  The plugin works
+with any runtime and adds six slash commands, two specialized agents, and the
+full Fedify skill:
+
+~~~~
+/plugin marketplace add fedify-dev/fedify
+/plugin install fedify@fedify
+~~~~
 
 ### Node.js/Bun
 
@@ -419,11 +430,7 @@ packages that adopt the convention.
 
 ### Deno
 
-> [!NOTE]
-> Automated installation for Deno is not available yet, so the skill must be
-> installed by hand for the time being.  Future automation through the
-> Claude Code plugin marketplace is tracked in
-> [issue #489].
+Install the skill by hand:
 
 1.  Pick your agent's skills directory.  For Claude Code, this is
     *.claude/skills/fedify/*.
@@ -433,10 +440,8 @@ packages that adopt the convention.
     ~~~~ sh
     mkdir -p .claude/skills/fedify
     curl -L -o .claude/skills/fedify/SKILL.md \
-      https://raw.githubusercontent.com/fedify-dev/fedify/main/packages/fedify/skills/fedify/SKILL.md
+      https://raw.githubusercontent.com/fedify-dev/fedify/main/claude-plugin/skills/fedify/SKILL.md
     ~~~~
 
 3.  Either commit the file or add it to *.gitignore*, depending on your
     team's preference.
-
-[issue #489]: https://github.com/fedify-dev/fedify/issues/489

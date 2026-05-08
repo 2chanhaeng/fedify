@@ -86,6 +86,26 @@ To be released.
  -  Added `SqliteMessageQueue.getDepth()` for reporting queued, ready, and
     delayed message counts.  [[#735], [#748]]
 
+### Claude Code plugin
+
+ -  Added a Claude Code plugin at *claude-plugin/*, installable with:
+
+    ~~~~ text
+    /plugin marketplace add fedify-dev/fedify
+    /plugin install fedify@fedify
+    ~~~~
+
+    The plugin provides six slash commands (`/fedify:fedify`, `/fedify:docs`,
+    `/fedify:actor`, `/fedify:inbox`, `/fedify:migration`, `/fedify:fep`) and
+    two specialized
+    agents (`fedify-reviewer` and `fedify-debugger`).  The Agent Skills bundle
+    lives canonically in *claude-plugin/skills/fedify/* and is referenced from
+    *packages/fedify/skills/fedify/* via a symlink; the `prepack` script
+    resolves the symlink to real files before packing so the published npm
+    tarball is self-contained.  [[#489]]
+
+[#489]: https://github.com/fedify-dev/fedify/issues/489
+
 
 Version 2.2.0
 -------------

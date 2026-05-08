@@ -1,5 +1,6 @@
 .cov/
 .cov.lcov
+.skills-fedify-symlink
 .dnt-import-map.json
 .test-report.xml
 apidoc/
