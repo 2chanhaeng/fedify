@@ -41,13 +41,25 @@ To be released.
     attributes, and `TraceActivityRecord.activityJson` is present only when the
     span event includes full activity JSON.  [[#316], [#619], [#755]]
 
+ -  Added OpenTelemetry HTTP server metrics for inbound requests handled by
+    `Federation.fetch()`: `fedify.http.server.request.count` (Counter) and
+    `fedify.http.server.request.duration` (Histogram).  Both instruments carry
+    `http.request.method`, `fedify.endpoint`, optional
+    `http.response.status_code`, and optional `fedify.route.template`
+    attributes so that operators can monitor aggregate request rate, latency,
+    and status-code error rate even when traces are sampled.  Attributes
+    deliberately exclude raw URLs, query strings, and identifier values to
+    keep cardinality bounded.  [[#316], [#736], [#757]]
+
 [#316]: https://github.com/fedify-dev/fedify/issues/316
 [#619]: https://github.com/fedify-dev/fedify/issues/619
 [#735]: https://github.com/fedify-dev/fedify/issues/735
+[#736]: https://github.com/fedify-dev/fedify/issues/736
 [#748]: https://github.com/fedify-dev/fedify/pull/748
 [#752]: https://github.com/fedify-dev/fedify/issues/752
 [#753]: https://github.com/fedify-dev/fedify/pull/753
 [#755]: https://github.com/fedify-dev/fedify/pull/755
+[#757]: https://github.com/fedify-dev/fedify/pull/757
 
 ### @fedify/fixture
 

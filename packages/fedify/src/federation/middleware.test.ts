@@ -1455,6 +1455,370 @@ test("Federation.fetch()", async (t) => {
   fetchMock.hardReset();
 });
 
+test("Federation.fetch() records HTTP server request metrics", async (t) => {
+  const createTestContext = () => {
+    const kv = new MemoryKvStore();
+    const [meterProvider, recorder] = createTestMeterProvider();
+    const federation = createFederation<void>({
+      kv,
+      meterProvider,
+      documentLoaderFactory: () => mockDocumentLoader,
+    });
+
+    federation.setActorDispatcher(
+      "/users/{identifier}",
+      (ctx, identifier) => {
+        if (identifier === "boom") {
+          throw new Error("explosion in actor dispatcher");
+        }
+        return new vocab.Person({
+          id: ctx.getActorUri(identifier),
+          inbox: ctx.getInboxUri(identifier),
+          preferredUsername: identifier,
+        });
+      },
+    );
+
+    federation.setNodeInfoDispatcher("/nodeinfo/2.1", () => ({
+      software: { name: "example", version: "1.0.0" },
+      protocols: ["activitypub"],
+      usage: { users: {}, localPosts: 0, localComments: 0 },
+    }));
+
+    federation.setFollowersDispatcher(
+      "/users/{identifier}/followers",
+      () => ({ items: [] }),
+    );
+
+    federation.setCollectionDispatcher(
+      "custom-collection",
+      vocab.Object,
+      "/users/{identifier}/custom/{id}",
+      () => ({ items: [] }),
+    );
+
+    federation.setInboxListeners("/users/{identifier}/inbox", "/inbox");
+
+    return { federation, recorder };
+  };
+
+  await t.step("records a successful actor request", async () => {
+    const { federation, recorder } = createTestContext();
+    const response = await federation.fetch(
+      new Request("https://example.com/users/alice", {
+        method: "GET",
+        headers: { "Accept": "application/activity+json" },
+      }),
+      { contextData: undefined },
+    );
+    assertEquals(response.status, 200);
+
+    const counts = recorder.getMeasurements("fedify.http.server.request.count");
+    assertEquals(counts.length, 1);
+    assertEquals(counts[0].type, "counter");
+    assertEquals(counts[0].value, 1);
+    assertEquals(counts[0].attributes["http.request.method"], "GET");
+    assertEquals(counts[0].attributes["fedify.endpoint"], "actor");
+    assertEquals(counts[0].attributes["http.response.status_code"], 200);
+    assertEquals(
+      counts[0].attributes["fedify.route.template"],
+      "/users/{identifier}",
+    );
+
+    const durations = recorder.getMeasurements(
+      "fedify.http.server.request.duration",
+    );
+    assertEquals(durations.length, 1);
+    assertEquals(durations[0].type, "histogram");
+    assert(durations[0].value >= 0);
+    assertEquals(durations[0].attributes["fedify.endpoint"], "actor");
+    assertEquals(durations[0].attributes["http.response.status_code"], 200);
+    assertEquals(
+      durations[0].attributes["fedify.route.template"],
+      "/users/{identifier}",
+    );
+  });
+
+  await t.step("records WebFinger requests", async () => {
+    const { federation, recorder } = createTestContext();
+    const response = await federation.fetch(
+      new Request(
+        "https://example.com/.well-known/webfinger?resource=acct:alice@example.com",
+      ),
+      { contextData: undefined },
+    );
+    assertEquals(response.status, 200);
+
+    const counts = recorder.getMeasurements("fedify.http.server.request.count");
+    assertEquals(counts.length, 1);
+    assertEquals(counts[0].attributes["fedify.endpoint"], "webfinger");
+    assertEquals(
+      counts[0].attributes["fedify.route.template"],
+      "/.well-known/webfinger",
+    );
+    assertEquals(counts[0].attributes["http.response.status_code"], 200);
+  });
+
+  await t.step("records NodeInfo JRD requests", async () => {
+    const { federation, recorder } = createTestContext();
+    const response = await federation.fetch(
+      new Request("https://example.com/.well-known/nodeinfo"),
+      { contextData: undefined },
+    );
+    assertEquals(response.status, 200);
+
+    const counts = recorder.getMeasurements("fedify.http.server.request.count");
+    assertEquals(counts.length, 1);
+    assertEquals(counts[0].attributes["fedify.endpoint"], "nodeinfo");
+    assertEquals(
+      counts[0].attributes["fedify.route.template"],
+      "/.well-known/nodeinfo",
+    );
+  });
+
+  await t.step("records NodeInfo dispatcher requests", async () => {
+    const { federation, recorder } = createTestContext();
+    const response = await federation.fetch(
+      new Request("https://example.com/nodeinfo/2.1"),
+      { contextData: undefined },
+    );
+    assertEquals(response.status, 200);
+
+    const counts = recorder.getMeasurements("fedify.http.server.request.count");
+    assertEquals(counts.length, 1);
+    assertEquals(counts[0].attributes["fedify.endpoint"], "nodeinfo");
+    assertEquals(
+      counts[0].attributes["fedify.route.template"],
+      "/nodeinfo/2.1",
+    );
+  });
+
+  await t.step("records 404 not_found for unmatched paths", async () => {
+    const { federation, recorder } = createTestContext();
+    const response = await federation.fetch(
+      new Request("https://example.com/no/such/path"),
+      { contextData: undefined },
+    );
+    assertEquals(response.status, 404);
+
+    const counts = recorder.getMeasurements("fedify.http.server.request.count");
+    assertEquals(counts.length, 1);
+    assertEquals(counts[0].attributes["fedify.endpoint"], "not_found");
+    assertEquals(counts[0].attributes["http.response.status_code"], 404);
+    assertEquals(counts[0].attributes["fedify.route.template"], undefined);
+  });
+
+  await t.step(
+    "records 406 not_acceptable when JSON-LD Accept missing",
+    async () => {
+      const { federation, recorder } = createTestContext();
+      const response = await federation.fetch(
+        new Request("https://example.com/users/alice", {
+          method: "GET",
+          headers: { "Accept": "text/html" },
+        }),
+        { contextData: undefined },
+      );
+      assertEquals(response.status, 406);
+
+      const counts = recorder.getMeasurements(
+        "fedify.http.server.request.count",
+      );
+      assertEquals(counts.length, 1);
+      assertEquals(counts[0].attributes["fedify.endpoint"], "not_acceptable");
+      assertEquals(counts[0].attributes["http.response.status_code"], 406);
+      assertEquals(
+        counts[0].attributes["fedify.route.template"],
+        "/users/{identifier}",
+      );
+    },
+  );
+
+  await t.step(
+    "records thrown errors after classification with the matched endpoint",
+    async () => {
+      const { federation, recorder } = createTestContext();
+      await assertRejects(
+        () =>
+          federation.fetch(
+            new Request("https://example.com/users/boom", {
+              method: "GET",
+              headers: { "Accept": "application/activity+json" },
+            }),
+            { contextData: undefined },
+          ),
+        Error,
+        "explosion",
+      );
+
+      const counts = recorder.getMeasurements(
+        "fedify.http.server.request.count",
+      );
+      assertEquals(counts.length, 1);
+      assertEquals(counts[0].attributes["fedify.endpoint"], "actor");
+      assertEquals(
+        counts[0].attributes["http.response.status_code"],
+        undefined,
+      );
+      assertEquals(
+        counts[0].attributes["fedify.route.template"],
+        "/users/{identifier}",
+      );
+
+      const durations = recorder.getMeasurements(
+        "fedify.http.server.request.duration",
+      );
+      assertEquals(durations.length, 1);
+      assertEquals(durations[0].attributes["fedify.endpoint"], "actor");
+    },
+  );
+
+  await t.step(
+    "collapses user-defined collection dispatchers to endpoint=collection",
+    async () => {
+      const { federation, recorder } = createTestContext();
+      const response = await federation.fetch(
+        new Request("https://example.com/users/alice/custom/1", {
+          method: "GET",
+          headers: { "Accept": "application/activity+json" },
+        }),
+        { contextData: undefined },
+      );
+      assertEquals(response.status, 200);
+
+      const counts = recorder.getMeasurements(
+        "fedify.http.server.request.count",
+      );
+      assertEquals(counts.length, 1);
+      assertEquals(counts[0].attributes["fedify.endpoint"], "collection");
+      assertEquals(
+        counts[0].attributes["fedify.route.template"],
+        "/users/{identifier}/custom/{id}",
+      );
+    },
+  );
+
+  await t.step("records followers as endpoint=followers", async () => {
+    const { federation, recorder } = createTestContext();
+    const response = await federation.fetch(
+      new Request("https://example.com/users/alice/followers", {
+        method: "GET",
+        headers: { "Accept": "application/activity+json" },
+      }),
+      { contextData: undefined },
+    );
+    assertEquals(response.status, 200);
+
+    const counts = recorder.getMeasurements("fedify.http.server.request.count");
+    assertEquals(counts.length, 1);
+    assertEquals(counts[0].attributes["fedify.endpoint"], "followers");
+    assertEquals(
+      counts[0].attributes["fedify.route.template"],
+      "/users/{identifier}/followers",
+    );
+  });
+
+  await t.step("records sharedInbox as endpoint=shared_inbox", async () => {
+    const kv = new MemoryKvStore();
+    const [meterProvider, recorder] = createTestMeterProvider();
+    const federation = createFederation<void>({
+      kv,
+      meterProvider,
+      documentLoaderFactory: () => mockDocumentLoader,
+    });
+    federation.setInboxListeners("/users/{identifier}/inbox", "/inbox");
+
+    const response = await federation.fetch(
+      new Request("https://example.com/inbox", {
+        method: "POST",
+        headers: { "accept": "application/ld+json" },
+      }),
+      { contextData: undefined },
+    );
+    // Without an actor dispatcher signature verification fails — but the
+    // routing classification has already happened, which is what we assert.
+    assert(response.status >= 400);
+
+    const counts = recorder.getMeasurements("fedify.http.server.request.count");
+    assertEquals(counts.length, 1);
+    assertEquals(counts[0].attributes["fedify.endpoint"], "shared_inbox");
+    assertEquals(
+      counts[0].attributes["fedify.route.template"],
+      "/inbox",
+    );
+    assertEquals(counts[0].attributes["http.request.method"], "POST");
+  });
+
+  await t.step(
+    "normalizes unknown HTTP methods to _OTHER for cardinality control",
+    async () => {
+      const { federation, recorder } = createTestContext();
+      const response = await federation.fetch(
+        new Request("https://example.com/users/alice", {
+          method: "PROPFIND",
+          headers: { "Accept": "application/activity+json" },
+        }),
+        { contextData: undefined },
+      );
+      // We only care about the metric attribute, not the response code here.
+      assert(response.status >= 100);
+
+      const counts = recorder.getMeasurements(
+        "fedify.http.server.request.count",
+      );
+      assertEquals(counts.length, 1);
+      assertEquals(counts[0].attributes["http.request.method"], "_OTHER");
+    },
+  );
+
+  await t.step(
+    "preserves QUERY as a known HTTP method",
+    async () => {
+      const { federation, recorder } = createTestContext();
+      const response = await federation.fetch(
+        new Request("https://example.com/users/alice", {
+          method: "QUERY",
+          headers: { "Accept": "application/activity+json" },
+        }),
+        { contextData: undefined },
+      );
+      assert(response.status >= 100);
+
+      const counts = recorder.getMeasurements(
+        "fedify.http.server.request.count",
+      );
+      assertEquals(counts.length, 1);
+      assertEquals(counts[0].attributes["http.request.method"], "QUERY");
+    },
+  );
+
+  await t.step(
+    "uses the global meter provider when none is configured",
+    async () => {
+      const kv = new MemoryKvStore();
+      const federation = createFederation<void>({
+        kv,
+        documentLoaderFactory: () => mockDocumentLoader,
+      });
+      federation.setActorDispatcher(
+        "/users/{identifier}",
+        (ctx, identifier) =>
+          new vocab.Person({ id: ctx.getActorUri(identifier) }),
+      );
+
+      // Should not throw — the no-op meter provider absorbs the calls.
+      const response = await federation.fetch(
+        new Request("https://example.com/users/alice", {
+          method: "GET",
+          headers: { "Accept": "application/activity+json" },
+        }),
+        { contextData: undefined },
+      );
+      assertEquals(response.status, 200);
+    },
+  );
+});
+
 test("Federation.setInboxListeners()", async (t) => {
   const kv = new MemoryKvStore();
 

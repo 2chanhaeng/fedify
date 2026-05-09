@@ -296,13 +296,15 @@ Instrumented metrics
 
 Fedify records the following OpenTelemetry metrics:
 
-| Metric name                                  | Instrument | Unit        | Description                                                 |
-| -------------------------------------------- | ---------- | ----------- | ----------------------------------------------------------- |
-| `activitypub.delivery.sent`                  | Counter    | `{attempt}` | Counts outgoing ActivityPub delivery attempts.              |
-| `activitypub.delivery.permanent_failure`     | Counter    | `{failure}` | Counts outgoing deliveries abandoned as permanent failures. |
-| `activitypub.delivery.duration`              | Histogram  | `ms`        | Measures outgoing ActivityPub delivery attempt duration.    |
-| `activitypub.inbox.processing_duration`      | Histogram  | `ms`        | Measures inbox listener processing duration.                |
-| `activitypub.signature.verification_failure` | Counter    | `{failure}` | Counts failed signature verification for inbox requests.    |
+| Metric name                                  | Instrument | Unit        | Description                                                     |
+| -------------------------------------------- | ---------- | ----------- | --------------------------------------------------------------- |
+| `activitypub.delivery.sent`                  | Counter    | `{attempt}` | Counts outgoing ActivityPub delivery attempts.                  |
+| `activitypub.delivery.permanent_failure`     | Counter    | `{failure}` | Counts outgoing deliveries abandoned as permanent failures.     |
+| `activitypub.delivery.duration`              | Histogram  | `ms`        | Measures outgoing ActivityPub delivery attempt duration.        |
+| `activitypub.inbox.processing_duration`      | Histogram  | `ms`        | Measures inbox listener processing duration.                    |
+| `activitypub.signature.verification_failure` | Counter    | `{failure}` | Counts failed signature verification for inbox requests.        |
+| `fedify.http.server.request.count`           | Counter    | `{request}` | Counts inbound HTTP requests handled by `Federation.fetch()`.   |
+| `fedify.http.server.request.duration`        | Histogram  | `ms`        | Measures inbound HTTP request duration in `Federation.fetch()`. |
 
 ### Metric attributes
 
@@ -324,10 +326,41 @@ Fedify records the following OpenTelemetry metrics:
 :   `activitypub.verification.failure_reason`, plus
     `activitypub.remote.host` when the failed signature includes a key ID.
 
+`fedify.http.server.request.count` and `fedify.http.server.request.duration`
+:   `http.request.method` and `fedify.endpoint` are always present.
+    `http.request.method` is normalized to one of the standard HTTP methods
+    (`CONNECT`, `DELETE`, `GET`, `HEAD`, `OPTIONS`, `PATCH`, `POST`, `PUT`,
+    `QUERY`, `TRACE`) or `_OTHER` for any other value, so that an arbitrary
+    client cannot inflate metric cardinality by sending custom methods.
+    `http.response.status_code` is recorded when a `Response` is produced
+    (success and non-2xx alike) and omitted when the request threw an
+    exception before a response could be returned.  `fedify.route.template`
+    is recorded when a route matched, and contains the [URI Template]
+    parameter names (for example `/users/{identifier}`) rather than the
+    matched parameter values.
+
 Fedify records `activitypub.remote.host` as the URL hostname only; ports, paths,
 and query strings are deliberately excluded to keep metric cardinality bounded.
 Activity types use the same qualified URI form as Fedify's trace attributes,
 for example `https://www.w3.org/ns/activitystreams#Create`.
+
+The HTTP server request metrics deliberately exclude high-cardinality fields
+such as the full URL, raw path, query string, actor identifier, and inbox
+URL.  Use the request span's `url.full` attribute when you need the exact URL
+for a sampled trace; the metrics expose the stable endpoint category and route
+template so that aggregate request rate, latency, and status-code error rate
+remain meaningful even when traces are sampled.
+
+The `fedify.endpoint` attribute is drawn from a fixed enumeration:
+`webfinger`, `nodeinfo`, `actor`, `inbox`, `shared_inbox`, `outbox`,
+`object`, `following`, `followers`, `liked`, `featured`, `featured_tags`,
+`collection`, `not_found`, `not_acceptable`, and `error`.  When a request
+throws an exception after Fedify has already classified its endpoint, the
+metric retains the matched endpoint (for example `actor`) so that
+fault-attribution stays per endpoint; `error` is only used when classification
+itself failed.
+
+[URI Template]: https://datatracker.ietf.org/doc/html/rfc6570
 
 
 Semantic [attributes] for ActivityPub
@@ -367,6 +400,8 @@ for ActivityPub:
 | `docloader.context_url`                  | string   | The URL of the JSON-LD context document (if provided via Link header).                                                   | `"https://www.w3.org/ns/activitystreams"`                            |
 | `docloader.document_url`                 | string   | The final URL of the fetched document (after following redirects).                                                       | `"https://example.com/object/1"`                                     |
 | `fedify.actor.identifier`                | string   | The identifier of the actor.                                                                                             | `"1"`                                                                |
+| `fedify.endpoint`                        | string   | The bounded endpoint category that classified an inbound HTTP request handled by `Federation.fetch()`.                   | `"actor"`                                                            |
+| `fedify.route.template`                  | string   | The matched URI Template, with parameter names (not values).                                                             | `"/users/{identifier}"`                                              |
 | `fedify.inbox.recipient`                 | string   | The identifier of the inbox recipient.                                                                                   | `"1"`                                                                |
 | `fedify.object.type`                     | string   | The URI of the object type.                                                                                              | `"https://www.w3.org/ns/activitystreams#Note"`                       |
 | `fedify.object.values.{parameter}`       | string[] | The argument values of the object dispatcher.                                                                            | `["1", "2"]`                                                         |
