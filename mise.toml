@@ -5,3 +5,7 @@ bun = "1.2.22"
 deno = "2.5.6"
 node = "22"
 "npm:pnpm" = "latest"
+
+[tasks.check]
+description = "Check code formatting, linting, and type checking"
+run = "deno task check-all"
