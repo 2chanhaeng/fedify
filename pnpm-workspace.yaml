@@ -44,6 +44,14 @@ packages:
 - examples/solidstart
 - examples/sveltekit-sample
 
+allowBuilds:
+  '@tailwindcss/oxide': true
+  esbuild: true
+  protobufjs: true
+  sharp: true
+  unrs-resolver: true
+  workerd: true
+
 catalog:
   "@cloudflare/workers-types": ^4.20250906.0
   "@fxts/core": ^1.20.0
