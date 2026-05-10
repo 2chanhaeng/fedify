@@ -8,6 +8,12 @@ Version 2.1.12
 
 To be released.
 
+### @fedify/vocab-runtime
+
+ -  Fixed `validatePublicUrl()` allowing private IPv4 addresses encoded as
+    IPv4-mapped IPv6 URL literals, such as `http://[::ffff:7f00:1]/`, which
+    could bypass private network protections in remote document loading.
+
 
 Version 2.1.11
 --------------
@@ -456,6 +462,18 @@ Released on March 24, 2026.
 [#586]: https://github.com/fedify-dev/fedify/issues/586
 [#597]: https://github.com/fedify-dev/fedify/pull/597
 [#599]: https://github.com/fedify-dev/fedify/pull/599
+
+
+Version 2.0.16
+--------------
+
+Released on May 10, 2026.
+
+### @fedify/vocab-runtime
+
+ -  Fixed `validatePublicUrl()` allowing private IPv4 addresses encoded as
+    IPv4-mapped IPv6 URL literals, such as `http://[::ffff:7f00:1]/`, which
+    could bypass private network protections in remote document loading.
 
 
 Version 2.0.15
@@ -1335,6 +1353,18 @@ Released on February 22, 2026.
 [#351]: https://github.com/fedify-dev/fedify/issues/351
 
 
+Version 1.10.9
+--------------
+
+Released on May 10, 2026.
+
+### @fedify/fedify
+
+ -  Fixed `validatePublicUrl()` allowing private IPv4 addresses encoded as
+    IPv4-mapped IPv6 URL literals, such as `http://[::ffff:7f00:1]/`, which
+    could bypass private network protections in remote document loading.
+
+
 Version 1.10.8
 --------------
 
@@ -1556,6 +1586,18 @@ Released on December 24, 2025.
 ### @fedify/cfworkers
 
  -  Implemented `list()` method in `WorkersKvStore`.  [[#498], [#500]]
+
+
+Version 1.9.10
+--------------
+
+Released on May 10, 2026.
+
+### @fedify/fedify
+
+ -  Fixed `validatePublicUrl()` allowing private IPv4 addresses encoded as
+    IPv4-mapped IPv6 URL literals, such as `http://[::ffff:7f00:1]/`, which
+    could bypass private network protections in remote document loading.
 
 
 Version 1.9.9
