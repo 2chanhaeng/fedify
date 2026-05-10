@@ -27,6 +27,14 @@ packages:
 - examples/next15-app-router
 - examples/sveltekit-sample
 
+allowBuilds:
+  '@tailwindcss/oxide': true
+  esbuild: true
+  protobufjs: true
+  sharp: true
+  unrs-resolver: true
+  workerd: true
+
 catalog:
   "@cloudflare/workers-types": ^4.20250906.0
   "@js-temporal/polyfill": ^0.5.1
