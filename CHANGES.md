@@ -8,6 +8,12 @@ Version 1.9.10
 
 To be released.
 
+### @fedify/fedify
+
+ -  Fixed `validatePublicUrl()` allowing private IPv4 addresses encoded as
+    IPv4-mapped IPv6 URL literals, such as `http://[::ffff:7f00:1]/`, which
+    could bypass private network protections in remote document loading.
+
 
 Version 1.9.9
 -------------
