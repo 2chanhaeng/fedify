@@ -2829,7 +2829,7 @@ test("handleInbox() challenge policy disabled + unsigned request", async () => {
     onNotFound: () => new Response("Not found", { status: 404 }),
     signatureTimeWindow: { minutes: 5 },
     skipSignatureVerification: false,
-    // No inboxChallengePolicy — disabled by default
+    // No inboxChallengePolicy—disabled by default
   });
   assertEquals(response.status, 401);
   assertEquals(
@@ -3066,7 +3066,7 @@ test("handleInbox() nonce replay prevention", async () => {
   const kv = new MemoryKvStore();
   const noncePrefix = ["_fedify", "acceptSignatureNonce"] as const;
   const nonce = "replay-nonce-xyz";
-  // Do NOT store the nonce — simulate it was already consumed or never issued
+  // Do NOT store the nonce—simulate it was already consumed or never issued
   const signedRequest = await signRequest(
     new Request("https://example.com/", {
       method: "POST",
@@ -3198,7 +3198,7 @@ test(
     );
 
     // Step 2: Manually inject a second bogus signature entry (sig2) that carries
-    // the stored nonce.  The signature bytes are garbage — it will never verify —
+    // the stored nonce.  The signature bytes are garbage—it will never verify—
     // but verifySignatureNonce() doesn't check validity, only presence.
     const existingSignatureInput = signedRequest.headers.get(
       "Signature-Input",
@@ -3370,7 +3370,7 @@ test(
       await response.text(),
       "The signer and the actor do not match.",
     );
-    // The nonce must NOT have been consumed — the actor/key mismatch should
+    // The nonce must NOT have been consumed—the actor/key mismatch should
     // reject before nonce consumption so the nonce remains usable.
     const stored = await kv.get(
       ["_fedify", "acceptSignatureNonce", nonce] as const,

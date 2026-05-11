@@ -161,7 +161,7 @@ The flags tell `fedify init` to use:
 :   Nuxt as the web framework.
 
 `-p npm`
-:   npm as the package manager.
+:   Npm as the package manager.
 
 `-k in-memory`
 :   An in-memory [key&ndash;value store](../manual/kv.md) for Fedify.  This is
@@ -6817,7 +6817,7 @@ reply under the original photo with a *1 Comment* counter and a
 
 ![Pixelfed's post detail page showing tester's beach photo, a
 “1 Comment” counter, and beneath it alice's reply
-“&commat;alice&commat;your-tunnel.example  — Reply from alice
+“&commat;alice&commat;your-tunnel.example—Reply from alice
 on PxShare to a Pixelfed
 post.”](./content-sharing/pixelfed-post-with-alice-comment.png)
 

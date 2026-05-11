@@ -275,7 +275,7 @@ test("signObject()", async () => {
   );
 
   // The proof hashed during signObject() must cover the same JSON-LD bytes
-  // that the activity serializes to on the wire — otherwise the outgoing
+  // that the activity serializes to on the wire—otherwise the outgoing
   // JSON-LD normalization applied before sending would break verifyProof()
   // for the eddsa-jcs-2022 cryptosuite, which canonicalises the JCS form
   // byte-for-byte rather than running URDNA2015.

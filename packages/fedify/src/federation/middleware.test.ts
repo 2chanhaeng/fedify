@@ -1735,7 +1735,7 @@ test("Federation.fetch() records HTTP server request metrics", async (t) => {
       }),
       { contextData: undefined },
     );
-    // Without an actor dispatcher signature verification fails — but the
+    // Without an actor dispatcher signature verification fails—but the
     // routing classification has already happened, which is what we assert.
     assert(response.status >= 400);
 
@@ -1806,7 +1806,7 @@ test("Federation.fetch() records HTTP server request metrics", async (t) => {
           new vocab.Person({ id: ctx.getActorUri(identifier) }),
       );
 
-      // Should not throw — the no-op meter provider absorbs the calls.
+      // Should not throw—the no-op meter provider absorbs the calls.
       const response = await federation.fetch(
         new Request("https://example.com/users/alice", {
           method: "GET",

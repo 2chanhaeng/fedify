@@ -2689,7 +2689,7 @@ test(
         }
         if (requestCount === 2) {
           // Challenge retry: returns ANOTHER Accept-Signature challenge
-          // (should NOT be followed — loop prevention)
+          // (should NOT be followed—loop prevention)
           return new Response("Still Not Authorized", {
             status: 401,
             headers: {
@@ -2752,7 +2752,7 @@ test(
         requestCount++;
         if (requestCount === 1) {
           // Challenge with a header component ("x-custom-required") that is
-          // absent from the request — createRfc9421SignatureBase() will throw
+          // absent from the request—createRfc9421SignatureBase() will throw
           // "Missing header: x-custom-required".
           return new Response("Not Authorized", {
             status: 401,
@@ -2805,7 +2805,7 @@ test(
         const req = cl.request!;
         requestCount++;
         if (requestCount === 1) {
-          // Challenge with "@query-param" — a derived component that throws
+          // Challenge with "@query-param"—a derived component that throws
           // in createRfc9421SignatureBase() because it requires special params.
           return new Response("Not Authorized", {
             status: 401,
@@ -2898,10 +2898,10 @@ test(
 test(
   "doubleKnock(): Accept-Signature with multiple compatible entries fulfills all (RFC 9421 §5 MUST)",
   async () => {
-    // RFC 9421 §5: "The target message of an Accept-Signature field MUST
+    // "The target message of an Accept-Signature field MUST
     // include all labeled signatures indicated in the Accept-Signature field."
     // When both entries are compatible with the local key, the retry request
-    // must carry signatures for sig1 AND sig2 — not just the first one.
+    // must carry signatures for sig1 AND sig2—not just the first one.
     fetchMock.spyGlobal();
     let requestCount = 0;
 
