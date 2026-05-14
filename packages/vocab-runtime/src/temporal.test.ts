@@ -38,6 +38,14 @@ test("isTemporalInstant() rejects bare objects tagged but missing shape", () => 
   strictEqual(isTemporalInstant(decoy), false);
 });
 
+test("isTemporalInstant() rejects non-bigint epochNanoseconds", () => {
+  const decoy = Object.create(null, {
+    [Symbol.toStringTag]: { value: "Temporal.Instant" },
+    epochNanoseconds: { value: 0 },
+  });
+  strictEqual(isTemporalInstant(decoy), false);
+});
+
 test("isTemporalDuration() accepts polyfill instances", () => {
   strictEqual(
     isTemporalDuration(Temporal.Duration.from({ hours: 1 })),
@@ -66,6 +74,14 @@ test("isTemporalDuration() rejects unrelated values", () => {
 test("isTemporalDuration() rejects bare objects tagged but missing shape", () => {
   const decoy = Object.create(null, {
     [Symbol.toStringTag]: { value: "Temporal.Duration" },
+  });
+  strictEqual(isTemporalDuration(decoy), false);
+});
+
+test("isTemporalDuration() rejects non-number sign", () => {
+  const decoy = Object.create(null, {
+    [Symbol.toStringTag]: { value: "Temporal.Duration" },
+    sign: { value: "0" },
   });
   strictEqual(isTemporalDuration(decoy), false);
 });
