@@ -3,7 +3,7 @@ import type {
   DocumentLoaderOptions,
   RemoteDocument,
 } from "@fedify/vocab-runtime";
-import { preloadedContexts } from "@fedify/vocab-runtime";
+import { isTemporalDuration, preloadedContexts } from "@fedify/vocab-runtime";
 import { getLogger } from "@logtape/logtape";
 import type {
   KvKey,
@@ -155,9 +155,7 @@ function matchRule(
   ][],
 ): Temporal.Duration | null {
   for (const [pattern, d] of rules!) {
-    const duration = d instanceof Temporal.Duration
-      ? d
-      : Temporal.Duration.from(d);
+    const duration = isTemporalDuration(d) ? d : Temporal.Duration.from(d);
     if (typeof pattern === "string") {
       if (url === pattern) return duration;
       continue;

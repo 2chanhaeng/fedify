@@ -38,6 +38,7 @@ export {
   type GetUserAgentOptions,
   logRequest,
 } from "./request.ts";
+export { isTemporalDuration, isTemporalInstant } from "./temporal.ts";
 export {
   expandIPv6Address,
   isValidPublicIPv4Address,

@@ -131,6 +131,8 @@ export async function* generateClasses(
     getDocumentLoader,
     importMultibaseKey,
     importPem,
+    isTemporalDuration,
+    isTemporalInstant,
     LanguageString,
     type RemoteDocument,
 } from "@fedify/vocab-runtime";\n`;

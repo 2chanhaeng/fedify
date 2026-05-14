@@ -73,6 +73,7 @@
     "typescript": "catalog:"
   },
   "dependencies": {
+    "@js-temporal/polyfill": "catalog:",
     "@logtape/logtape": "catalog:",
     "@multiformats/base-x": "catalog:",
     "@opentelemetry/api": "catalog:",
