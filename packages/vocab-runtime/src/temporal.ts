@@ -28,8 +28,7 @@ export function isTemporalInstant(value: unknown): value is Temporal.Instant {
   return (
     typeof value === "object" &&
     value !== null &&
-    (value as { [Symbol.toStringTag]?: unknown })[Symbol.toStringTag] ===
-      "Temporal.Instant" &&
+    Object.prototype.toString.call(value) === "[object Temporal.Instant]" &&
     "epochNanoseconds" in value
   );
 }
@@ -50,8 +49,7 @@ export function isTemporalDuration(value: unknown): value is Temporal.Duration {
   return (
     typeof value === "object" &&
     value !== null &&
-    (value as { [Symbol.toStringTag]?: unknown })[Symbol.toStringTag] ===
-      "Temporal.Duration" &&
+    Object.prototype.toString.call(value) === "[object Temporal.Duration]" &&
     "sign" in value
   );
 }
