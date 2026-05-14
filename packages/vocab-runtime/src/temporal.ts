@@ -15,16 +15,19 @@
  * Checks whether the given value is a `Temporal.Instant` object, regardless
  * of whether it came from a polyfill or the host's native implementation.
  *
- * The guard verifies the spec-mandated `Symbol.toStringTag` and that the
- * `epochNanoseconds` accessor exposes a `bigint`.  Together they reject bare
- * objects whose tag was set to `"Temporal.Instant"` without exposing the
- * rest of the shape, including the case where the property exists but holds
- * a value of the wrong type.
+ * The guard verifies the spec-mandated `Symbol.toStringTag`, that the
+ * `epochNanoseconds` accessor exposes a `bigint`, and that `toString` is
+ * not the default inherited from `Object.prototype`.  Together they reject
+ * bare objects whose tag was set to `"Temporal.Instant"` without exposing
+ * the rest of the shape; the `toString` check in particular prevents a
+ * spoof from reaching the JSON-LD serializer (which calls `toString()`)
+ * and emitting `"[object Temporal.Instant]"` instead of an RFC 3339
+ * timestamp.
  *
  * @param value The value to test.
  * @returns `true` if the value reports `Temporal.Instant` via
- *          `Symbol.toStringTag` and exposes a `bigint`-valued
- *          `epochNanoseconds`; `false` otherwise.
+ *          `Symbol.toStringTag`, exposes a `bigint`-valued
+ *          `epochNanoseconds`, and overrides `toString`; `false` otherwise.
  */
 export function isTemporalInstant(value: unknown): value is Temporal.Instant {
   return (
@@ -32,7 +35,10 @@ export function isTemporalInstant(value: unknown): value is Temporal.Instant {
     value !== null &&
     Object.prototype.toString.call(value) === "[object Temporal.Instant]" &&
     "epochNanoseconds" in value &&
-    typeof value.epochNanoseconds === "bigint"
+    typeof value.epochNanoseconds === "bigint" &&
+    "toString" in value &&
+    typeof value.toString === "function" &&
+    value.toString !== Object.prototype.toString
   );
 }
 
@@ -40,16 +46,18 @@ export function isTemporalInstant(value: unknown): value is Temporal.Instant {
  * Checks whether the given value is a `Temporal.Duration` object, regardless
  * of whether it came from a polyfill or the host's native implementation.
  *
- * The guard verifies the spec-mandated `Symbol.toStringTag` and that the
- * `sign` accessor exposes a `number`.  Together they reject bare objects
- * whose tag was set to `"Temporal.Duration"` without exposing the rest of
- * the shape, including the case where the property exists but holds a
- * value of the wrong type.
+ * The guard verifies the spec-mandated `Symbol.toStringTag`, that the
+ * `sign` accessor exposes a `number`, and that `toString` is not the
+ * default inherited from `Object.prototype`.  Together they reject bare
+ * objects whose tag was set to `"Temporal.Duration"` without exposing the
+ * rest of the shape; the `toString` check in particular prevents a spoof
+ * from reaching the JSON-LD serializer (which calls `toString()`) and
+ * emitting `"[object Temporal.Duration]"` instead of an ISO 8601 duration.
  *
  * @param value The value to test.
  * @returns `true` if the value reports `Temporal.Duration` via
- *          `Symbol.toStringTag` and exposes a `number`-valued `sign`;
- *          `false` otherwise.
+ *          `Symbol.toStringTag`, exposes a `number`-valued `sign`, and
+ *          overrides `toString`; `false` otherwise.
  */
 export function isTemporalDuration(value: unknown): value is Temporal.Duration {
   return (
@@ -57,6 +65,9 @@ export function isTemporalDuration(value: unknown): value is Temporal.Duration {
     value !== null &&
     Object.prototype.toString.call(value) === "[object Temporal.Duration]" &&
     "sign" in value &&
-    typeof value.sign === "number"
+    typeof value.sign === "number" &&
+    "toString" in value &&
+    typeof value.toString === "function" &&
+    value.toString !== Object.prototype.toString
   );
 }

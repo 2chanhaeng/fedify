@@ -82,6 +82,7 @@ test(
       {
         [Symbol.toStringTag]: { value: "Temporal.Instant" },
         epochNanoseconds: { value: 0n },
+        toString: { value: () => "1970-01-01T00:00:00Z" },
       },
     ) as Temporal.Instant;
     const obj = new Object({ published: foreignInstant });
@@ -97,6 +98,7 @@ test(
       {
         [Symbol.toStringTag]: { value: "Temporal.Instant" },
         epochNanoseconds: { value: 0n },
+        toString: { value: () => "1970-01-01T00:00:00Z" },
       },
     ) as Temporal.Instant;
     const obj = new Object({}).clone({ published: foreignInstant });

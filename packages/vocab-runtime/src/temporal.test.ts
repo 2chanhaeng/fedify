@@ -16,6 +16,7 @@ test("isTemporalInstant() accepts spec-compliant non-polyfill objects", () => {
   const nativeLike = Object.create(null, {
     [Symbol.toStringTag]: { value: "Temporal.Instant" },
     epochNanoseconds: { value: 0n },
+    toString: { value: () => "1970-01-01T00:00:00Z" },
   });
   strictEqual(isTemporalInstant(nativeLike), true);
 });
@@ -42,7 +43,19 @@ test("isTemporalInstant() rejects non-bigint epochNanoseconds", () => {
   const decoy = Object.create(null, {
     [Symbol.toStringTag]: { value: "Temporal.Instant" },
     epochNanoseconds: { value: 0 },
+    toString: { value: () => "1970-01-01T00:00:00Z" },
   });
+  strictEqual(isTemporalInstant(decoy), false);
+});
+
+test("isTemporalInstant() rejects default Object.prototype.toString", () => {
+  // A plain object inherits `toString` from `Object.prototype`, so calling
+  // it would produce `"[object Temporal.Instant]"` instead of an RFC 3339
+  // timestamp.  The guard must reject these to keep the serializer honest.
+  const decoy = {
+    [Symbol.toStringTag]: "Temporal.Instant",
+    epochNanoseconds: 0n,
+  };
   strictEqual(isTemporalInstant(decoy), false);
 });
 
@@ -57,6 +70,7 @@ test("isTemporalDuration() accepts spec-compliant non-polyfill objects", () => {
   const nativeLike = Object.create(null, {
     [Symbol.toStringTag]: { value: "Temporal.Duration" },
     sign: { value: 0 },
+    toString: { value: () => "PT0S" },
   });
   strictEqual(isTemporalDuration(nativeLike), true);
 });
@@ -82,6 +96,15 @@ test("isTemporalDuration() rejects non-number sign", () => {
   const decoy = Object.create(null, {
     [Symbol.toStringTag]: { value: "Temporal.Duration" },
     sign: { value: "0" },
+    toString: { value: () => "PT0S" },
   });
+  strictEqual(isTemporalDuration(decoy), false);
+});
+
+test("isTemporalDuration() rejects default Object.prototype.toString", () => {
+  const decoy = {
+    [Symbol.toStringTag]: "Temporal.Duration",
+    sign: 0,
+  };
   strictEqual(isTemporalDuration(decoy), false);
 });
