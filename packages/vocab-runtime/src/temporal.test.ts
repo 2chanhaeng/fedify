@@ -101,6 +101,17 @@ test("isTemporalDuration() rejects non-number sign", () => {
   strictEqual(isTemporalDuration(decoy), false);
 });
 
+test("isTemporalDuration() rejects out-of-range sign values", () => {
+  // Real Temporal.Duration#sign is `-1 | 0 | 1` per spec, so anything else
+  // (here, 42) must be rejected even though it is a number.
+  const decoy = Object.create(null, {
+    [Symbol.toStringTag]: { value: "Temporal.Duration" },
+    sign: { value: 42 },
+    toString: { value: () => "PT42S" },
+  });
+  strictEqual(isTemporalDuration(decoy), false);
+});
+
 test("isTemporalDuration() rejects default Object.prototype.toString", () => {
   const decoy = {
     [Symbol.toStringTag]: "Temporal.Duration",

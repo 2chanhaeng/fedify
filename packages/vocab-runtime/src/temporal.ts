@@ -47,17 +47,18 @@ export function isTemporalInstant(value: unknown): value is Temporal.Instant {
  * of whether it came from a polyfill or the host's native implementation.
  *
  * The guard verifies the spec-mandated `Symbol.toStringTag`, that the
- * `sign` accessor exposes a `number`, and that `toString` is not the
- * default inherited from `Object.prototype`.  Together they reject bare
- * objects whose tag was set to `"Temporal.Duration"` without exposing the
- * rest of the shape; the `toString` check in particular prevents a spoof
- * from reaching the JSON-LD serializer (which calls `toString()`) and
- * emitting `"[object Temporal.Duration]"` instead of an ISO 8601 duration.
+ * `sign` accessor returns one of the three spec-valid values (`-1`, `0`,
+ * or `1`), and that `toString` is not the default inherited from
+ * `Object.prototype`.  Together they reject bare objects whose tag was set
+ * to `"Temporal.Duration"` without exposing the rest of the shape; the
+ * `toString` check in particular prevents a spoof from reaching the
+ * JSON-LD serializer (which calls `toString()`) and emitting
+ * `"[object Temporal.Duration]"` instead of an ISO 8601 duration.
  *
  * @param value The value to test.
  * @returns `true` if the value reports `Temporal.Duration` via
- *          `Symbol.toStringTag`, exposes a `number`-valued `sign`, and
- *          overrides `toString`; `false` otherwise.
+ *          `Symbol.toStringTag`, exposes a `sign` of `-1`, `0`, or `1`,
+ *          and overrides `toString`; `false` otherwise.
  */
 export function isTemporalDuration(value: unknown): value is Temporal.Duration {
   return (
@@ -65,7 +66,7 @@ export function isTemporalDuration(value: unknown): value is Temporal.Duration {
     value !== null &&
     Object.prototype.toString.call(value) === "[object Temporal.Duration]" &&
     "sign" in value &&
-    typeof value.sign === "number" &&
+    (value.sign === -1 || value.sign === 0 || value.sign === 1) &&
     "toString" in value &&
     typeof value.toString === "function" &&
     value.toString !== Object.prototype.toString
