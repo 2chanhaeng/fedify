@@ -1,4 +1,3 @@
-/// <reference lib="esnext.temporal" />
 /**
  * Type guards for `Temporal` namespace objects.
  *
