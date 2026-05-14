@@ -3,7 +3,8 @@ import type {
   DocumentLoaderOptions,
   RemoteDocument,
 } from "@fedify/vocab-runtime";
-import { isTemporalDuration, preloadedContexts } from "@fedify/vocab-runtime";
+import { preloadedContexts } from "@fedify/vocab-runtime";
+import { isTemporalDuration } from "@fedify/vocab-runtime/temporal";
 import { getLogger } from "@logtape/logtape";
 import type {
   KvKey,

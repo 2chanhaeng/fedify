@@ -36,6 +36,10 @@ To be released.
     accept both polyfill and native `Temporal` values via `Symbol.toStringTag`.
     [[#767]]
 
+ -  Added the `@fedify/vocab-runtime/temporal` subpath export so consumers
+    can import the new `Temporal` type guards without pulling in the rest of
+    the runtime.  [[#767]]
+
 
 Version 2.0.16
 --------------

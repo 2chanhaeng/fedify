@@ -131,11 +131,13 @@ export async function* generateClasses(
     getDocumentLoader,
     importMultibaseKey,
     importPem,
-    isTemporalDuration,
-    isTemporalInstant,
     LanguageString,
     type RemoteDocument,
 } from "@fedify/vocab-runtime";\n`;
+  yield `import {
+    isTemporalDuration,
+    isTemporalInstant,
+} from "@fedify/vocab-runtime/temporal";\n`;
   yield "\n\n";
   const sorted = sortTopologically(types);
   for (const typeUri of sorted) {

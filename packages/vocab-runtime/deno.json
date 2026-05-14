@@ -4,7 +4,8 @@
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
-    "./jsonld": "./src/jsonld.ts"
+    "./jsonld": "./src/jsonld.ts",
+    "./temporal": "./src/temporal.ts"
   },
   "description": "Runtime library for @fedify/vocab",
   "author": {
