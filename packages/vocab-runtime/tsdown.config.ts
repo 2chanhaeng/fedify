@@ -9,6 +9,9 @@ export default [
     format: ["esm", "cjs"],
     platform: "neutral",
     external: [/^node:/],
+    banner: {
+      dts: `/// <reference lib="esnext.temporal" />`,
+    },
   }),
   defineConfig({
     outDir: "dist/tests",
