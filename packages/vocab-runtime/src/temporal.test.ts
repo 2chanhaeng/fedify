@@ -15,6 +15,7 @@ test("isTemporalInstant() accepts spec-compliant non-polyfill objects", () => {
   // not share class identity with the bundled polyfill.
   const nativeLike = Object.create(null, {
     [Symbol.toStringTag]: { value: "Temporal.Instant" },
+    epochNanoseconds: { value: 0n },
   });
   strictEqual(isTemporalInstant(nativeLike), true);
 });
@@ -30,6 +31,13 @@ test("isTemporalInstant() rejects unrelated values", () => {
   );
 });
 
+test("isTemporalInstant() rejects bare objects tagged but missing shape", () => {
+  const decoy = Object.create(null, {
+    [Symbol.toStringTag]: { value: "Temporal.Instant" },
+  });
+  strictEqual(isTemporalInstant(decoy), false);
+});
+
 test("isTemporalDuration() accepts polyfill instances", () => {
   strictEqual(
     isTemporalDuration(Temporal.Duration.from({ hours: 1 })),
@@ -40,6 +48,7 @@ test("isTemporalDuration() accepts polyfill instances", () => {
 test("isTemporalDuration() accepts spec-compliant non-polyfill objects", () => {
   const nativeLike = Object.create(null, {
     [Symbol.toStringTag]: { value: "Temporal.Duration" },
+    sign: { value: 0 },
   });
   strictEqual(isTemporalDuration(nativeLike), true);
 });
@@ -52,4 +61,11 @@ test("isTemporalDuration() rejects unrelated values", () => {
     isTemporalDuration(Temporal.Instant.from("2026-05-14T00:00:00Z")),
     false,
   );
+});
+
+test("isTemporalDuration() rejects bare objects tagged but missing shape", () => {
+  const decoy = Object.create(null, {
+    [Symbol.toStringTag]: { value: "Temporal.Duration" },
+  });
+  strictEqual(isTemporalDuration(decoy), false);
 });

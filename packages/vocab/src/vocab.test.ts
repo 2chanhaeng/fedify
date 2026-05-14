@@ -79,7 +79,10 @@ test(
   () => {
     const foreignInstant = globalThis.Object.create(
       globalThis.Object.prototype,
-      { [Symbol.toStringTag]: { value: "Temporal.Instant" } },
+      {
+        [Symbol.toStringTag]: { value: "Temporal.Instant" },
+        epochNanoseconds: { value: 0n },
+      },
     ) as Temporal.Instant;
     const obj = new Object({ published: foreignInstant });
     ok(obj.published === foreignInstant);
@@ -91,7 +94,10 @@ test(
   () => {
     const foreignInstant = globalThis.Object.create(
       globalThis.Object.prototype,
-      { [Symbol.toStringTag]: { value: "Temporal.Instant" } },
+      {
+        [Symbol.toStringTag]: { value: "Temporal.Instant" },
+        epochNanoseconds: { value: 0n },
+      },
     ) as Temporal.Instant;
     const obj = new Object({}).clone({ published: foreignInstant });
     ok(obj.published === foreignInstant);
