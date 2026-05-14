@@ -24,21 +24,22 @@ To be released.
     import from `@js-temporal/polyfill`; they reference the ambient `Temporal`
     namespace through the `esnext.temporal` lib instead, which removes the
     nominal mismatch with native Temporal types.  TypeScript 6.0 or later is
-    required to consume the type declarations.  [[#767]]
+    required to consume the type declarations.  [[#767], [#768]]
 
 [#762]: https://github.com/fedify-dev/fedify/issues/762
 [#763]: https://github.com/fedify-dev/fedify/pull/763
 [#767]: https://github.com/fedify-dev/fedify/issues/767
+[#768]: https://github.com/fedify-dev/fedify/pull/768
 
 ### @fedify/vocab-runtime
 
  -  Added `isTemporalInstant()` and `isTemporalDuration()` type guards that
     accept both polyfill and native `Temporal` values via `Symbol.toStringTag`.
-    [[#767]]
+    [[#767], [#768]]
 
  -  Added the `@fedify/vocab-runtime/temporal` subpath export so consumers
     can import the new `Temporal` type guards without pulling in the rest of
-    the runtime.  [[#767]]
+    the runtime.  [[#767], [#768]]
 
 ### @fedify/postgres
 
@@ -47,7 +48,7 @@ To be released.
     through the `esnext.temporal` lib instead, so `pollInterval` and
     `handlerTimeout` accept native `Temporal.Duration` values from Node.js
     26+ without a nominal type mismatch.  TypeScript 6.0 or later is
-    required to consume the type declarations.  [[#767]]
+    required to consume the type declarations.  [[#767], [#768]]
 
 ### @fedify/redis
 
@@ -56,7 +57,7 @@ To be released.
     through the `esnext.temporal` lib instead, so `pollInterval` accepts
     native `Temporal.Duration` values from Node.js 26+ without a nominal type
     mismatch.  TypeScript 6.0 or later is required to consume the type
-    declarations.  [[#767]]
+    declarations.  [[#767], [#768]]
 
 ### @fedify/sqlite
 
@@ -65,7 +66,7 @@ To be released.
     through the `esnext.temporal` lib instead, so `pollInterval` accepts
     native `Temporal.Duration` values from Node.js 26+ without a nominal type
     mismatch.  TypeScript 6.0 or later is required to consume the type
-    declarations.  [[#767]]
+    declarations.  [[#767], [#768]]
 
 
 Version 2.0.16
