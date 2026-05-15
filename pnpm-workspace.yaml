@@ -91,5 +91,5 @@ catalog:
   pkijs: ^3.3.3
   postgres: ^3.4.7
   tsdown: ^0.21.6
-  typescript: ^5.9.2
+  typescript: ^6.0.0
   urlpattern-polyfill: "^10.1.0"

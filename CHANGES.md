@@ -15,8 +15,58 @@ To be released.
     fetches are retried once, and remaining transport failures are reported as
     `FetchError` with the original error as the cause.  [[#762], [#763]]
 
+ -  Fixed a `TypeError` thrown when Activity Vocabulary constructors received
+    a `Temporal.Instant` or `Temporal.Duration` produced by an implementation
+    other than the bundled `@js-temporal/polyfill` (for example, the native
+    `Temporal` shipped with Node.js 26+).  Internal `instanceof` checks have
+    been replaced with `Symbol.toStringTag`-based guards so any spec-conformant
+    Temporal value is accepted.  Generated _\*.d.ts_ declarations no longer
+    import from `@js-temporal/polyfill`; they reference the ambient `Temporal`
+    namespace through the `esnext.temporal` lib instead, which removes the
+    nominal mismatch with native Temporal types.  TypeScript 6.0 or later is
+    required to consume the type declarations.  [[#767], [#768]]
+
 [#762]: https://github.com/fedify-dev/fedify/issues/762
 [#763]: https://github.com/fedify-dev/fedify/pull/763
+[#767]: https://github.com/fedify-dev/fedify/issues/767
+[#768]: https://github.com/fedify-dev/fedify/pull/768
+
+### @fedify/vocab-runtime
+
+ -  Added `isTemporalInstant()` and `isTemporalDuration()` type guards that
+    accept both polyfill and native `Temporal` values via `Symbol.toStringTag`.
+    [[#767], [#768]]
+
+ -  Added the `@fedify/vocab-runtime/temporal` subpath export so consumers
+    can import the new `Temporal` type guards without pulling in the rest of
+    the runtime.  [[#767], [#768]]
+
+### @fedify/postgres
+
+ -  Generated _\*.d.ts_ declarations no longer import from
+    `@js-temporal/polyfill`; they reference the ambient `Temporal` namespace
+    through the `esnext.temporal` lib instead, so `pollInterval` and
+    `handlerTimeout` accept native `Temporal.Duration` values from Node.js
+    26+ without a nominal type mismatch.  TypeScript 6.0 or later is
+    required to consume the type declarations.  [[#767], [#768]]
+
+### @fedify/redis
+
+ -  Generated _\*.d.ts_ declarations no longer import from
+    `@js-temporal/polyfill`; they reference the ambient `Temporal` namespace
+    through the `esnext.temporal` lib instead, so `pollInterval` accepts
+    native `Temporal.Duration` values from Node.js 26+ without a nominal type
+    mismatch.  TypeScript 6.0 or later is required to consume the type
+    declarations.  [[#767], [#768]]
+
+### @fedify/sqlite
+
+ -  Generated _\*.d.ts_ declarations no longer import from
+    `@js-temporal/polyfill`; they reference the ambient `Temporal` namespace
+    through the `esnext.temporal` lib instead, so `pollInterval` accepts
+    native `Temporal.Duration` values from Node.js 26+ without a nominal type
+    mismatch.  TypeScript 6.0 or later is required to consume the type
+    declarations.  [[#767], [#768]]
 
 
 Version 2.0.16

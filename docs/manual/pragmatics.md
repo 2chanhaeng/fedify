@@ -158,7 +158,6 @@ The date joined is displayed in the profile page of the actor.
 
 ~~~~ typescript twoslash
 import { Person } from "@fedify/vocab";
-import { Temporal } from "@js-temporal/polyfill";
 // ---cut-before---
 new Person({
   name: "Fedify Demo",

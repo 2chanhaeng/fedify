@@ -168,7 +168,7 @@ Deno.serve(request =>
 ~~~~
 
 ~~~~ typescript twoslash [Bun]
-import "@types/bun";
+import "bun";
 // ---cut-before---
 Bun.serve({
   port: 8000,
@@ -277,7 +277,7 @@ Deno.serve(
 ~~~~
 
 ~~~~ typescript{4} twoslash [Bun]
-import "@types/bun";
+import "bun";
 import type { Federation } from "@fedify/fedify";
 const federation = null as unknown as Federation<void>;
 // ---cut-before---
@@ -407,7 +407,7 @@ Deno.serve(
 ~~~~
 
 ~~~~ typescript{7-16} twoslash [Bun]
-import "@types/bun";
+import "bun";
 // ---cut-before---
 import { createFederation, MemoryKvStore } from "@fedify/fedify";
 import { Person } from "@fedify/vocab";
@@ -654,7 +654,7 @@ Deno.serve(
 ~~~~
 
 ~~~~ typescript{1,5} twoslash [Bun]
-import "@types/bun";
+import "bun";
 import type { Federation } from "@fedify/fedify";
 const federation = null as unknown as Federation<void>;
 // ---cut-before---
@@ -1202,7 +1202,7 @@ Deno.serve(async (request) => {
 ~~~~
 
 ~~~~ typescript{4-18} twoslash [Bun]
-import "@types/bun";
+import "bun";
 import type { Federation } from "@fedify/fedify";
 import { openKv } from "@deno/kv";
 const federation = null as unknown as Federation<void>;

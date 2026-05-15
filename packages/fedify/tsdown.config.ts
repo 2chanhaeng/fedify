@@ -19,19 +19,20 @@ export default [
     format: ["esm", "cjs"],
     platform: "neutral",
     deps: { neverBundle: [/^node:/] },
-    outputOptions(outputOptions, format) {
-      if (format === "cjs") {
-        outputOptions.intro = `
-          const { Temporal } = require("@js-temporal/polyfill");
-          const { URLPattern } = require("urlpattern-polyfill");
-        `;
-      } else {
-        outputOptions.intro = `
-          import { Temporal } from "@js-temporal/polyfill";
-          import { URLPattern } from "urlpattern-polyfill";
-        `;
-      }
-      return outputOptions;
+    banner({ format }) {
+      const js = format === "cjs"
+        ? [
+          `const { Temporal } = require("@js-temporal/polyfill");`,
+          `const { URLPattern } = require("urlpattern-polyfill");`,
+        ].join("\n")
+        : [
+          `import { Temporal } from "@js-temporal/polyfill";`,
+          `import { URLPattern } from "urlpattern-polyfill";`,
+        ].join("\n");
+      return {
+        js,
+        dts: `/// <reference lib="esnext.temporal" />`,
+      };
     },
   }),
   defineConfig({
