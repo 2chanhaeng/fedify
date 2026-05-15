@@ -3417,7 +3417,8 @@
       ]
     },
     "@ungap/structured-clone@1.3.0": {
-      "integrity": "sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g=="
+      "integrity": "sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==",
+      "deprecated": true
     },
     "@vercel/nft@1.5.0_rollup@4.60.1": {
       "integrity": "sha512-IWTDeIoWhQ7ZtRO/JRKH+jhmeQvZYhtGPmzw/QGDY+wDCQqfm25P9yIdoAFagu4fWsK4IwZXDFIjrmp5rRm/sA==",
@@ -9513,6 +9514,7 @@
       },
       "packages/vocab-runtime": {
         "dependencies": [
+          "npm:@js-temporal/polyfill@~0.5.1",
           "npm:@multiformats/base-x@^4.0.1",
           "npm:asn1js@^3.0.6",
           "npm:byte-encodings@^1.0.11",

@@ -546,7 +546,7 @@ Deno.serve(
 ~~~~
 
 ~~~~ typescript twoslash [Bun]
-import "@types/bun";
+import "bun";
 import { type Federation } from "@fedify/fedify";
 const federation = null as unknown as Federation<void>;
 const request = new Request("");
@@ -671,7 +671,7 @@ serve({
 ~~~~
 
 ~~~~ typescript{1,4} twoslash [Bun]
-import "@types/bun";
+import "bun";
 import { type Federation } from "@fedify/fedify";
 const federation = null as unknown as Federation<void>;
 // ---cut-before---
