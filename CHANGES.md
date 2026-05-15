@@ -68,6 +68,15 @@ To be released.
     mismatch.  TypeScript 6.0 or later is required to consume the type
     declarations.  [[#767], [#768]]
 
+### @fedify/mysql
+
+ -  Generated _\*.d.ts_ declarations no longer import from
+    `@js-temporal/polyfill`; they reference the ambient `Temporal` namespace
+    through the `esnext.temporal` lib instead, so `pollInterval` and
+    `handlerTimeout` accept native `Temporal.Duration` values from Node.js
+    26+ without a nominal type mismatch.  TypeScript 6.0 or later is
+    required to consume the type declarations.  [[#767]]
+
 
 Version 2.1.12
 --------------
