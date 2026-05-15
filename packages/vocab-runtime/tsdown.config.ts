@@ -4,11 +4,14 @@ import { defineConfig } from "tsdown";
 
 export default [
   defineConfig({
-    entry: ["src/mod.ts", "src/jsonld.ts"],
+    entry: ["src/mod.ts", "src/jsonld.ts", "src/temporal.ts"],
     dts: { compilerOptions: { isolatedDeclarations: true, declaration: true } },
     format: ["esm", "cjs"],
     platform: "neutral",
     deps: { neverBundle: [/^node:/] },
+    banner: {
+      dts: `/// <reference lib="esnext.temporal" />`,
+    },
   }),
   defineConfig({
     outDir: "dist/tests",

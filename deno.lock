@@ -9554,6 +9554,7 @@
       },
       "packages/vocab-runtime": {
         "dependencies": [
+          "npm:@js-temporal/polyfill@~0.5.1",
           "npm:@multiformats/base-x@^4.0.1",
           "npm:byte-encodings@^1.0.11",
           "npm:fetch-mock@^12.5.4",
