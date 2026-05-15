@@ -1851,6 +1851,199 @@ test("doubleKnock() detects redirect loops", async () => {
   fetchMock.hardReset();
 });
 
+test("doubleKnock() retries idempotent request transport errors", async () => {
+  fetchMock.spyGlobal();
+
+  try {
+    let requestCount = 0;
+    fetchMock.get("https://example.com/flaky-document", () => {
+      requestCount++;
+      if (requestCount === 1) {
+        throw new TypeError("temporary DNS failure");
+      }
+      return new Response("Success", { status: 200 });
+    });
+
+    const request = new Request("https://example.com/flaky-document");
+    const response = await doubleKnock(
+      request,
+      {
+        keyId: rsaPublicKey2.id!,
+        privateKey: rsaPrivateKey2,
+      },
+    );
+
+    assertEquals(response.status, 200);
+    assertEquals(await response.text(), "Success");
+    assertEquals(requestCount, 2);
+  } finally {
+    fetchMock.hardReset();
+  }
+});
+
+test("doubleKnock() wraps repeated transport errors", async () => {
+  fetchMock.spyGlobal();
+
+  try {
+    let requestCount = 0;
+    const failure = new TypeError("DNS lookup failed");
+    fetchMock.get("https://example.com/unreachable-document", () => {
+      requestCount++;
+      throw failure;
+    });
+
+    const request = new Request("https://example.com/unreachable-document");
+    const error = await assertRejects(
+      () =>
+        doubleKnock(
+          request,
+          {
+            keyId: rsaPublicKey2.id!,
+            privateKey: rsaPrivateKey2,
+          },
+        ),
+      FetchError,
+      "DNS lookup failed",
+    );
+
+    assertEquals(error.url.href, "https://example.com/unreachable-document");
+    assertEquals(error.cause, failure);
+    assertEquals(requestCount, 2);
+  } finally {
+    fetchMock.hardReset();
+  }
+});
+
+test("doubleKnock() does not retry non-idempotent transport errors", async () => {
+  fetchMock.spyGlobal();
+
+  try {
+    let requestCount = 0;
+    const failure = new TypeError("connection reset");
+    fetchMock.post("https://example.com/flaky-inbox", () => {
+      requestCount++;
+      throw failure;
+    });
+
+    const request = new Request("https://example.com/flaky-inbox", {
+      method: "POST",
+      body: "Test activity content",
+      headers: {
+        "Content-Type": "application/activity+json",
+      },
+    });
+    const error = await assertRejects(
+      () =>
+        doubleKnock(
+          request,
+          {
+            keyId: rsaPublicKey2.id!,
+            privateKey: rsaPrivateKey2,
+          },
+        ),
+      FetchError,
+      "connection reset",
+    );
+
+    assertEquals(error.url.href, "https://example.com/flaky-inbox");
+    assertEquals(error.cause, failure);
+    assertEquals(requestCount, 1);
+  } finally {
+    fetchMock.hardReset();
+  }
+});
+
+test("doubleKnock() preserves Request signal abort reasons", async () => {
+  const controller = new AbortController();
+  const abortReason = "request aborted";
+  controller.abort(abortReason);
+
+  const request = new Request("https://example.com/request-abort", {
+    signal: controller.signal,
+  });
+  const error = await assertRejects(
+    () =>
+      doubleKnock(
+        request,
+        {
+          keyId: rsaPublicKey2.id!,
+          privateKey: rsaPrivateKey2,
+        },
+      ),
+  );
+
+  assertEquals(error, abortReason);
+});
+
+test("doubleKnock() preserves Request signal aborts during retry delay", async () => {
+  fetchMock.spyGlobal();
+
+  try {
+    let requestCount = 0;
+    const controller = new AbortController();
+    const abortReason = "retry aborted";
+    fetchMock.get("https://example.com/aborted-retry", () => {
+      requestCount++;
+      setTimeout(() => controller.abort(abortReason));
+      throw new TypeError("temporary DNS failure");
+    });
+
+    const request = new Request("https://example.com/aborted-retry", {
+      signal: controller.signal,
+    });
+    const error = await assertRejects(
+      () =>
+        doubleKnock(
+          request,
+          {
+            keyId: rsaPublicKey2.id!,
+            privateKey: rsaPrivateKey2,
+          },
+        ),
+    );
+
+    assertEquals(error, abortReason);
+    assertEquals(requestCount, 1);
+  } finally {
+    fetchMock.hardReset();
+  }
+});
+
+test("doubleKnock() prefers Request aborts over transport errors", async () => {
+  fetchMock.spyGlobal();
+
+  try {
+    let requestCount = 0;
+    const controller = new AbortController();
+    const abortReason = "transport aborted";
+    fetchMock.get("https://example.com/abort-with-transport-error", () => {
+      requestCount++;
+      controller.abort(abortReason);
+      throw new TypeError("temporary DNS failure");
+    });
+
+    const request = new Request(
+      "https://example.com/abort-with-transport-error",
+      { signal: controller.signal },
+    );
+    const error = await assertRejects(
+      () =>
+        doubleKnock(
+          request,
+          {
+            keyId: rsaPublicKey2.id!,
+            privateKey: rsaPrivateKey2,
+          },
+        ),
+    );
+
+    assertEquals(error, abortReason);
+    assertEquals(requestCount, 1);
+  } finally {
+    fetchMock.hardReset();
+  }
+});
+
 test("doubleKnock() async specDeterminer test", async () => {
   // Install mock fetch handler
   fetchMock.spyGlobal();
