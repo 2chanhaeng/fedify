@@ -107,6 +107,10 @@ import {
   getDurationMs,
   getFederationMetrics,
   getRemoteHost,
+  isAbortError,
+  type QueueTaskCommonAttributes,
+  type QueueTaskResult,
+  recordOutboxEnqueue,
 } from "./metrics.ts";
 import type { MessageQueue } from "./mq.ts";
 import { acceptsJsonLd } from "./negotiation.ts";
@@ -488,8 +492,14 @@ export class FederationImpl<TContextData>
       context.active(),
       message.traceContext,
     );
+    const meter = getFederationMetrics(this.meterProvider);
     return withContext({ messageId: message.id }, async () => {
       if (message.type === "fanout") {
+        const common: QueueTaskCommonAttributes = {
+          role: "fanout",
+          queue: this.fanoutQueue,
+          activityType: message.activityType,
+        };
         await tracer.startActiveSpan(
           "activitypub.fanout",
           {
@@ -510,15 +520,29 @@ export class FederationImpl<TContextData>
                     message.activityId,
                   );
                 }
+                meter.recordQueueTaskStarted(common);
+                meter.incrementQueueTaskInFlight(common);
+                const startedAt = performance.now();
+                let outcome: QueueTaskResult = "completed";
                 try {
                   await this.#listenFanoutMessage(contextData, message);
                 } catch (e) {
-                  span.setStatus({
-                    code: SpanStatusCode.ERROR,
-                    message: String(e),
-                  });
+                  const aborted = isAbortError(e);
+                  outcome = aborted ? "aborted" : "failed";
+                  if (!aborted) {
+                    span.setStatus({
+                      code: SpanStatusCode.ERROR,
+                      message: String(e),
+                    });
+                  }
                   throw e;
                 } finally {
+                  meter.recordQueueTaskOutcome(
+                    common,
+                    outcome,
+                    getDurationMs(startedAt),
+                  );
+                  meter.decrementQueueTaskInFlight(common);
                   span.end();
                 }
               },
@@ -526,6 +550,11 @@ export class FederationImpl<TContextData>
           },
         );
       } else if (message.type === "outbox") {
+        const common: QueueTaskCommonAttributes = {
+          role: "outbox",
+          queue: this.outboxQueue,
+          activityType: message.activityType,
+        };
         await tracer.startActiveSpan(
           "activitypub.outbox",
           {
@@ -547,15 +576,29 @@ export class FederationImpl<TContextData>
                     message.activityId,
                   );
                 }
+                meter.recordQueueTaskStarted(common);
+                meter.incrementQueueTaskInFlight(common);
+                const startedAt = performance.now();
+                let outcome: QueueTaskResult = "completed";
                 try {
                   await this.#listenOutboxMessage(contextData, message, span);
                 } catch (e) {
-                  span.setStatus({
-                    code: SpanStatusCode.ERROR,
-                    message: String(e),
-                  });
+                  const aborted = isAbortError(e);
+                  outcome = aborted ? "aborted" : "failed";
+                  if (!aborted) {
+                    span.setStatus({
+                      code: SpanStatusCode.ERROR,
+                      message: String(e),
+                    });
+                  }
                   throw e;
                 } finally {
+                  meter.recordQueueTaskOutcome(
+                    common,
+                    outcome,
+                    getDurationMs(startedAt),
+                  );
+                  meter.decrementQueueTaskInFlight(common);
                   span.end();
                 }
               },
@@ -563,6 +606,10 @@ export class FederationImpl<TContextData>
           },
         );
       } else if (message.type === "inbox") {
+        const common: QueueTaskCommonAttributes = {
+          role: "inbox",
+          queue: this.inboxQueue,
+        };
         await tracer.startActiveSpan(
           "activitypub.inbox",
           {
@@ -577,15 +624,36 @@ export class FederationImpl<TContextData>
             return await withContext(
               { traceId: spanCtx.traceId, spanId: spanCtx.spanId },
               async () => {
+                meter.recordQueueTaskStarted(common);
+                meter.incrementQueueTaskInFlight(common);
+                const startedAt = performance.now();
+                let outcome: QueueTaskResult = "completed";
                 try {
-                  await this.#listenInboxMessage(contextData, message, span);
+                  await this.#listenInboxMessage(
+                    contextData,
+                    message,
+                    span,
+                    (activityType) => {
+                      common.activityType = activityType;
+                    },
+                  );
                 } catch (e) {
-                  span.setStatus({
-                    code: SpanStatusCode.ERROR,
-                    message: String(e),
-                  });
+                  const aborted = isAbortError(e);
+                  outcome = aborted ? "aborted" : "failed";
+                  if (!aborted) {
+                    span.setStatus({
+                      code: SpanStatusCode.ERROR,
+                      message: String(e),
+                    });
+                  }
                   throw e;
                 } finally {
+                  meter.recordQueueTaskOutcome(
+                    common,
+                    outcome,
+                    getDurationMs(startedAt),
+                  );
+                  meter.decrementQueueTaskInFlight(common);
                   span.end();
                 }
               },
@@ -809,17 +877,29 @@ export class FederationImpl<TContextData>
             "#{attempt}); retry...:\n{error}",
           { ...logData, error },
         );
-        await this.outboxQueue?.enqueue(
-          {
-            ...message,
-            attempt: message.attempt + 1,
-          } satisfies OutboxMessage,
-          {
-            delay: Temporal.Duration.compare(delay, { seconds: 0 }) < 0
-              ? Temporal.Duration.from({ seconds: 0 })
-              : delay,
-          },
-        );
+        const retryMessage = {
+          ...message,
+          attempt: message.attempt + 1,
+        } satisfies OutboxMessage;
+        const { outboxQueue } = this;
+        if (outboxQueue != null) {
+          await outboxQueue.enqueue(
+            retryMessage,
+            {
+              delay: Temporal.Duration.compare(delay, { seconds: 0 }) < 0
+                ? Temporal.Duration.from({ seconds: 0 })
+                : delay,
+            },
+          );
+          getFederationMetrics(this.meterProvider).recordQueueTaskEnqueued(
+            {
+              role: "outbox",
+              queue: outboxQueue,
+              activityType: retryMessage.activityType,
+            },
+            retryMessage.attempt,
+          );
+        }
       } else {
         logger.error(
           "Failed to send activity {activityId} to {inbox} after {attempt} " +
@@ -839,6 +919,7 @@ export class FederationImpl<TContextData>
     ctxData: TContextData,
     message: InboxMessage,
     span: Span,
+    onActivityType?: (activityType: string) => void,
   ): Promise<void> {
     const logger = getLogger(["fedify", "federation", "inbox"]);
     const baseUrl = new URL(message.baseUrl);
@@ -860,7 +941,9 @@ export class FederationImpl<TContextData>
       }
     }
     const activity = await Activity.fromJsonLd(message.activity, context);
-    span.setAttribute("activitypub.activity.type", getTypeId(activity).href);
+    const activityType = getTypeId(activity).href;
+    span.setAttribute("activitypub.activity.type", activityType);
+    onActivityType?.(activityType);
     if (activity.id != null) {
       span.setAttribute("activitypub.activity.id", activity.id.href);
     }
@@ -897,7 +980,7 @@ export class FederationImpl<TContextData>
           );
           span.setStatus({
             code: SpanStatusCode.ERROR,
-            message: `Unsupported activity type: ${getTypeId(activity).href}`,
+            message: `Unsupported activity type: ${activityType}`,
           });
           span.end();
           return;
@@ -905,7 +988,6 @@ export class FederationImpl<TContextData>
         const { class: cls, listener } = dispatched;
         span.updateName(`activitypub.dispatch_inbox_listener ${cls.name}`);
         try {
-          const activityType = getTypeId(activity).href;
           const started = performance.now();
           try {
             await listener(
@@ -976,17 +1058,29 @@ export class FederationImpl<TContextData>
                 recipient: message.identifier,
               },
             );
-            await this.inboxQueue?.enqueue(
-              {
-                ...message,
-                attempt: message.attempt + 1,
-              } satisfies InboxMessage,
-              {
-                delay: Temporal.Duration.compare(delay, { seconds: 0 }) < 0
-                  ? Temporal.Duration.from({ seconds: 0 })
-                  : delay,
-              },
-            );
+            const retryMessage = {
+              ...message,
+              attempt: message.attempt + 1,
+            } satisfies InboxMessage;
+            const { inboxQueue } = this;
+            if (inboxQueue != null) {
+              await inboxQueue.enqueue(
+                retryMessage,
+                {
+                  delay: Temporal.Duration.compare(delay, { seconds: 0 }) < 0
+                    ? Temporal.Duration.from({ seconds: 0 })
+                    : delay,
+                },
+              );
+              getFederationMetrics(this.meterProvider).recordQueueTaskEnqueued(
+                {
+                  role: "inbox",
+                  queue: inboxQueue,
+                  activityType,
+                },
+                retryMessage.attempt,
+              );
+            }
           } else {
             logger.error(
               "Failed to process the incoming activity {activityId} after " +
@@ -1300,12 +1394,17 @@ export class FederationImpl<TContextData>
       messages.push({ message, orderingKey: messageOrderingKey });
     }
     const { outboxQueue } = this;
-    if (outboxQueue.enqueueMany == null) {
-      const promises: Promise<void>[] = messages.map((m) =>
-        outboxQueue.enqueue(m.message, { orderingKey: m.orderingKey })
+    // enqueueMany does not support per-message orderingKey, so fall back to
+    // individual enqueues whenever orderingKey is specified or the backend
+    // does not implement enqueueMany.
+    if (outboxQueue.enqueueMany == null || orderingKey != null) {
+      const promises: PromiseSettledResult<void>[] = await Promise.allSettled(
+        messages.map(async (m) => {
+          await outboxQueue.enqueue(m.message, { orderingKey: m.orderingKey });
+          recordOutboxEnqueue(this.meterProvider, outboxQueue, m.message);
+        }),
       );
-      const results = await Promise.allSettled(promises);
-      const errors = results
+      const errors = promises
         .filter((r) => r.status === "rejected")
         .map((r) => (r as PromiseRejectedResult).reason);
       if (errors.length > 0) {
@@ -1322,39 +1421,17 @@ export class FederationImpl<TContextData>
         throw errors[0];
       }
     } else {
-      // Note: enqueueMany does not support per-message orderingKey,
-      // so we fall back to individual enqueues when orderingKey is specified
-      if (orderingKey != null) {
-        const promises: Promise<void>[] = messages.map((m) =>
-          outboxQueue.enqueue(m.message, { orderingKey: m.orderingKey })
+      try {
+        await outboxQueue.enqueueMany(messages.map((m) => m.message));
+      } catch (error) {
+        logger.error(
+          "Failed to enqueue activity {activityId} to send later: {error}",
+          { activityId: activity.id!.href, error },
         );
-        const results = await Promise.allSettled(promises);
-        const errors = results
-          .filter((r) => r.status === "rejected")
-          .map((r) => (r as PromiseRejectedResult).reason);
-        if (errors.length > 0) {
-          logger.error(
-            "Failed to enqueue activity {activityId} to send later: {errors}",
-            { activityId: activity.id!.href, errors },
-          );
-          if (errors.length > 1) {
-            throw new AggregateError(
-              errors,
-              `Failed to enqueue activity ${activityId} to send later.`,
-            );
-          }
-          throw errors[0];
-        }
-      } else {
-        try {
-          await outboxQueue.enqueueMany(messages.map((m) => m.message));
-        } catch (error) {
-          logger.error(
-            "Failed to enqueue activity {activityId} to send later: {error}",
-            { activityId: activity.id!.href, error },
-          );
-          throw error;
-        }
+        throw error;
+      }
+      for (const m of messages) {
+        recordOutboxEnqueue(this.meterProvider, outboxQueue, m.message);
       }
     }
   }
@@ -2640,6 +2717,14 @@ export class ContextImpl<TContextData> implements Context<TContextData> {
       message,
       { orderingKey: options.orderingKey },
     );
+    getFederationMetrics(this.federation.meterProvider).recordQueueTaskEnqueued(
+      {
+        role: "fanout",
+        queue: this.federation.fanoutQueue,
+        activityType: message.activityType,
+      },
+      0,
+    );
     return true;
   }
 
@@ -2853,6 +2938,7 @@ export class ContextImpl<TContextData> implements Context<TContextData> {
       kvPrefixes: this.federation.kvPrefixes,
       queue: this.federation.inboxQueue,
       span,
+      meterProvider: this.federation.meterProvider,
       tracerProvider: options.tracerProvider ?? this.tracerProvider,
       idempotencyStrategy: this.federation.idempotencyStrategy,
     });
@@ -3272,11 +3358,17 @@ async function forwardActivityInternal<TContextData>(
   }
   const { outboxQueue } = ctx.federation;
   if (outboxQueue.enqueueMany == null || orderingKey != null) {
-    const promises: Promise<void>[] = messages.map((m) =>
-      outboxQueue.enqueue(m.message, { orderingKey: m.orderingKey })
+    const promises: PromiseSettledResult<void>[] = await Promise.allSettled(
+      messages.map(async (m) => {
+        await outboxQueue.enqueue(m.message, { orderingKey: m.orderingKey });
+        recordOutboxEnqueue(
+          ctx.federation.meterProvider,
+          outboxQueue,
+          m.message,
+        );
+      }),
     );
-    const results = await Promise.allSettled(promises);
-    const errors: unknown[] = results
+    const errors: unknown[] = promises
       .filter((r) => r.status === "rejected")
       .map((r) => (r as PromiseRejectedResult).reason);
     if (errors.length > 0) {
@@ -3301,6 +3393,13 @@ async function forwardActivityInternal<TContextData>(
         { activityId: ctx.activityId, error },
       );
       throw error;
+    }
+    for (const m of messages) {
+      recordOutboxEnqueue(
+        ctx.federation.meterProvider,
+        outboxQueue,
+        m.message,
+      );
     }
   }
   return true;
