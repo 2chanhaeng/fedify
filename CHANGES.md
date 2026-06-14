@@ -285,8 +285,18 @@ To be released.
         `FederationOptions.taskQueueResolution` option is set to `"strict"`.
         `Federation.startQueue()` now accepts `queue: "task"` to run
         a task-only worker.
+     -  Tasks can request at-most-once enqueue with a `deduplicationKey`
+        (new `TaskEnqueueOptions.deduplicationKey`).  A queue declaring the new
+        `MessageQueue.nativeDeduplication` capability owns the check and
+        receives the key through the new
+        `MessageQueueEnqueueOptions.deduplicationKey`; otherwise Fedify
+        performs a best-effort key–value guard through the optional
+        `KvStore.cas` primitive, under a new `taskDeduplication` key prefix.
+        The marker TTL and the no-`cas` fallback are tunable with the new
+        `FederationOptions.taskDeduplicationTtl` and
+        `FederationOptions.taskDeduplicationFallback` options.
 
-    [[#206], [#797], [#803] by ChanHaeng Lee]
+    [[#206], [#797], [#798], [#803] by ChanHaeng Lee]
 
 [Standard Schema]: https://standardschema.dev/
 [#206]: https://github.com/fedify-dev/fedify/issues/206
@@ -320,6 +330,7 @@ To be released.
 [#782]: https://github.com/fedify-dev/fedify/issues/782
 [#787]: https://github.com/fedify-dev/fedify/pull/787
 [#797]: https://github.com/fedify-dev/fedify/issues/797
+[#798]: https://github.com/fedify-dev/fedify/issues/798
 [#800]: https://github.com/fedify-dev/fedify/pull/800
 [#803]: https://github.com/fedify-dev/fedify/pull/803
 
