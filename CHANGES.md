@@ -295,8 +295,20 @@ To be released.
         The marker TTL and the no-`cas` fallback are tunable with the new
         `FederationOptions.taskDeduplicationTtl` and
         `FederationOptions.taskDeduplicationFallback` options.
+     -  Tasks are instrumented with task-specific OpenTelemetry telemetry.
+        Each dequeued task runs in a `fedify.task` span that inherits the
+        enqueue site's trace context and carries `fedify.task.name`,
+        `fedify.task.attempt`, and, on a terminal failure,
+        `fedify.task.failure_reason`.  The existing `fedify.queue.task.*`
+        metrics now report task runs under `fedify.queue.role` `task` with the
+        task name and, on a failure, a bounded `fedify.task.failure_reason`
+        (one of `deserialization`, `validation`, `unknown_task`, or
+        `handler`).  `QueueTaskRole` gained `"task"`,
+        `QueueTaskCommonAttributes` gained `taskName`, and the new
+        `QueueTaskFailureReason` type and an optional trailing `failureReason`
+        parameter on `recordQueueTaskOutcome()` carry the failure reason.
 
-    [[#206], [#797], [#798], [#803] by ChanHaeng Lee]
+    [[#206], [#797], [#798], [#799], [#803] by ChanHaeng Lee]
 
 [Standard Schema]: https://standardschema.dev/
 [#206]: https://github.com/fedify-dev/fedify/issues/206
@@ -331,6 +343,7 @@ To be released.
 [#787]: https://github.com/fedify-dev/fedify/pull/787
 [#797]: https://github.com/fedify-dev/fedify/issues/797
 [#798]: https://github.com/fedify-dev/fedify/issues/798
+[#799]: https://github.com/fedify-dev/fedify/issues/799
 [#800]: https://github.com/fedify-dev/fedify/pull/800
 [#803]: https://github.com/fedify-dev/fedify/pull/803
 

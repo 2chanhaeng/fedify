@@ -10,8 +10,8 @@ export default class TaskCodec {
   serialize = (data: unknown): Promise<string> =>
     stringifyAsync(data, { Vocab: this.#stringifyVocab });
 
-  deserialize = (raw: string): Promise<unknown> =>
-    this.#revive(new Map())(parse(raw, { Vocab: VocabHolder.from }));
+  deserialize = async (raw: string): Promise<unknown> =>
+    await this.#revive(new Map())(parse(raw, { Vocab: VocabHolder.from }));
 
   /** Validates `data` against `schema`, then serializes it. */
   encode = async <S extends StandardSchemaV1>(
@@ -25,6 +25,19 @@ export default class TaskCodec {
     raw: string,
   ): Promise<StandardSchemaV1.InferOutput<S>> =>
     TaskCodec.validate(schema, await this.deserialize(raw));
+
+  /**
+   * Validates an already-deserialized `data` against `schema`.  An instance
+   * wrapper over {@link TaskCodec.validate} so the dispatch site can split
+   * {@link decode} into its deserialize and validate phases—telling a
+   * deserialization failure apart from a validation failure—without importing
+   * the class.
+   */
+  validate = <S extends StandardSchemaV1>(
+    schema: S,
+    data: unknown,
+  ): Promise<StandardSchemaV1.InferOutput<S>> =>
+    TaskCodec.validate(schema, data);
 
   static validate = async <S extends StandardSchemaV1>(
     schema: S,
