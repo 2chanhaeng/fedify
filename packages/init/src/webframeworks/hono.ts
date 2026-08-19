@@ -5,18 +5,13 @@ import { PACKAGE_VERSION, readTemplate } from "../lib.ts";
 import type { WebFrameworkDescription } from "../types.ts";
 import { replace } from "../utils.ts";
 import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
-import {
-  getInstruction,
-  getTestTask,
-  nodeBunDevToolTasks,
-  pmToRt,
-} from "./utils.ts";
+import { addTestTask, getInstruction, nodeBunDevToolTasks } from "./utils.ts";
 
 const honoDescription: WebFrameworkDescription = {
   label: "Hono",
   packageManagers: PACKAGE_MANAGER,
   defaultPort: 8000,
-  init: async ({ projectName, packageManager: pm }) => ({
+  init: async ({ projectName, packageManager: pm, rt, skipSmokeTest }) => ({
     dependencies: getDependencies(pm),
     devDependencies: {
       ...defaultDevDependencies,
@@ -32,7 +27,7 @@ const honoDescription: WebFrameworkDescription = {
         replace(/\/\* logger \*\//, projectName),
       ),
       "src/index.ts": await readTemplate(
-        `hono/index/${pmToRt(pm)}.ts`,
+        `hono/index/${rt}.ts`,
       ),
     },
     compilerOptions: pm === "deno" ? undefined : {
@@ -47,7 +42,7 @@ const honoDescription: WebFrameworkDescription = {
       "jsx": "react-jsx",
       "jsxImportSource": "hono/jsx",
     },
-    tasks: TASKS[pmToRt(pm)],
+    tasks: addTestTask(rt, skipSmokeTest)(TASKS[rt]),
     instruction: getInstruction(pm, 8000),
   }),
 };
@@ -81,18 +76,15 @@ const TASKS = {
   deno: {
     dev: "deno run -A --watch ./src/index.ts",
     prod: "deno run -A ./src/index.ts",
-    test: getTestTask("deno"),
   },
   bun: {
     dev: "bun run --hot ./src/index.ts",
     prod: "bun run ./src/index.ts",
-    test: getTestTask("bun"),
     ...nodeBunDevToolTasks,
   },
   node: {
     dev: "dotenvx run -- tsx watch ./src/index.ts",
     prod: "dotenvx run -- node --import tsx ./src/index.ts",
-    test: getTestTask("npm"),
     ...nodeBunDevToolTasks,
   },
 };

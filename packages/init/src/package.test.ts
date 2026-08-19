@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import deps from "./json/deps.json" with { type: "json" };
 import { PACKAGE_VERSION } from "./lib.ts";
 import astroDescription from "./webframeworks/astro.ts";
+import { pmToRt } from "./webframeworks/utils.ts";
 
 const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -48,9 +49,11 @@ test("Astro init pins the Astro 7 scaffolder and dependencies", async () => {
       dryRun: true,
       allowNonEmpty: false,
       skipInstall: false,
+      skipSmokeTest: false,
       kvStore: "in-memory",
       messageQueue: "in-process",
       packageManager,
+      rt: pmToRt(packageManager),
       projectName: "fedify-test",
       testMode: true,
       webFramework: "astro",
@@ -114,9 +117,11 @@ test(
       dryRun: true,
       allowNonEmpty: false,
       skipInstall: false,
+      skipSmokeTest: false,
       kvStore: "in-memory",
       messageQueue: "in-process",
       packageManager: "bun",
+      rt: "bun",
       projectName: "fedify-test",
       testMode: true,
       webFramework: "astro",

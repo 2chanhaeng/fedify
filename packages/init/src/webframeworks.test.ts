@@ -1,4 +1,4 @@
-import { equal, ok } from "node:assert/strict";
+import { deepEqual, equal, ok } from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import test from "node:test";
@@ -8,6 +8,20 @@ import webFrameworks from "./webframeworks/mod.ts";
 import nextDescription from "./webframeworks/next.ts";
 import nitroDescription from "./webframeworks/nitro.ts";
 import solidstartDescription from "./webframeworks/solidstart.ts";
+import { addTestTask } from "./webframeworks/utils.ts";
+
+test("addTestTask adds a test task to existing tasks", () => {
+  deepEqual(addTestTask("node", false)({ dev: "tsx watch src/index.ts" }), {
+    dev: "tsx watch src/index.ts",
+    test: "node --experimental-transform-types --test",
+  });
+});
+
+test("addTestTask preserves existing tasks when smoke tests are skipped", () => {
+  deepEqual(addTestTask("node", true)({ dev: "tsx watch src/index.ts" }), {
+    dev: "tsx watch src/index.ts",
+  });
+});
 
 test("Nitro template loads LogTape during server startup", async () => {
   const { files } = await nitroDescription.init({
@@ -15,6 +29,7 @@ test("Nitro template loads LogTape during server startup", async () => {
     dir: ".",
     command: "init",
     packageManager: "npm",
+    rt: "node",
     kvStore: "in-memory",
     messageQueue: "in-process",
     webFramework: "nitro",
@@ -22,6 +37,7 @@ test("Nitro template loads LogTape during server startup", async () => {
     dryRun: true,
     allowNonEmpty: false,
     skipInstall: false,
+    skipSmokeTest: false,
   });
 
   ok(files);
@@ -37,6 +53,7 @@ test("Next.js template loads LogTape through instrumentation", async () => {
     dir: ".",
     command: "init",
     packageManager: "npm",
+    rt: "node",
     kvStore: "in-memory",
     messageQueue: "in-process",
     webFramework: "next",
@@ -44,6 +61,7 @@ test("Next.js template loads LogTape through instrumentation", async () => {
     dryRun: true,
     allowNonEmpty: false,
     skipInstall: false,
+    skipSmokeTest: false,
   });
 
   ok(files);
@@ -61,6 +79,7 @@ test("Astro template loads LogTape through middleware", async () => {
     dir: ".",
     command: "init",
     packageManager: "npm",
+    rt: "node",
     kvStore: "in-memory",
     messageQueue: "in-process",
     webFramework: "astro",
@@ -68,6 +87,7 @@ test("Astro template loads LogTape through middleware", async () => {
     dryRun: true,
     allowNonEmpty: false,
     skipInstall: false,
+    skipSmokeTest: false,
   });
 
   ok(files);
@@ -82,6 +102,7 @@ test("SolidStart template loads LogTape through middleware", async () => {
     dir: ".",
     command: "init",
     packageManager: "npm",
+    rt: "node",
     kvStore: "in-memory",
     messageQueue: "in-process",
     webFramework: "solidstart",
@@ -89,6 +110,7 @@ test("SolidStart template loads LogTape through middleware", async () => {
     dryRun: true,
     allowNonEmpty: false,
     skipInstall: false,
+    skipSmokeTest: false,
   });
 
   ok(files);
@@ -107,6 +129,7 @@ test("Node.js and Bun templates use Oxfmt and Oxlint", async () => {
         dir: ".",
         command: "init",
         packageManager,
+        rt: packageManager === "bun" ? "bun" : "node",
         kvStore: "in-memory",
         messageQueue: "in-process",
         webFramework: webFramework as keyof typeof webFrameworks,
@@ -114,6 +137,7 @@ test("Node.js and Bun templates use Oxfmt and Oxlint", async () => {
         dryRun: true,
         allowNonEmpty: false,
         skipInstall: false,
+        skipSmokeTest: false,
       });
 
       equal(initializer.tasks?.format, "oxfmt");
@@ -137,6 +161,7 @@ test("Astro Node.js and Bun templates use Prettier for Astro files", async () =>
       dir: ".",
       command: "init",
       packageManager,
+      rt: packageManager === "bun" ? "bun" : "node",
       kvStore: "in-memory",
       messageQueue: "in-process",
       webFramework: "astro",
@@ -144,6 +169,7 @@ test("Astro Node.js and Bun templates use Prettier for Astro files", async () =>
       dryRun: true,
       allowNonEmpty: false,
       skipInstall: false,
+      skipSmokeTest: false,
     });
 
     equal(
@@ -163,6 +189,34 @@ test("Astro Node.js and Bun templates use Prettier for Astro files", async () =>
     equal(initializer.devDependencies?.["oxfmt"], undefined);
     equal(initializer.devDependencies?.["oxlint"] != null, true);
     equal(initializer.format?.tool, "prettier");
+  }
+});
+
+test("templates omit smoke-test tasks and dependencies when skipped", async () => {
+  for (const [webFramework, description] of Object.entries(webFrameworks)) {
+    const initializer = await description.init({
+      projectName: "test-app",
+      dir: ".",
+      command: "init",
+      packageManager: "npm",
+      rt: "node",
+      kvStore: "in-memory",
+      messageQueue: "in-process",
+      webFramework: webFramework as keyof typeof webFrameworks,
+      testMode: false,
+      dryRun: true,
+      allowNonEmpty: false,
+      skipInstall: false,
+      skipSmokeTest: true,
+    });
+
+    equal(initializer.tasks?.test, undefined);
+    if (webFramework === "sveltekit") {
+      equal(initializer.devDependencies?.tsx, undefined);
+    }
+    if (webFramework === "elysia") {
+      equal(initializer.devDependencies?.tsx != null, true);
+    }
   }
 });
 

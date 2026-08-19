@@ -394,6 +394,25 @@ dependencies later.  Other steps such as creating files, applying patches, and
 running the framework-specific scaffolder (e.g., *create-next-app*) still
 happen as usual; only the final install step is skipped.
 
+### `--skip-smoke-test`: Skip generating the smoke test
+
+*This option is available since Fedify 2.4.0.*
+
+By default, `fedify init` creates *scripts/smoke.test.ts* and a `test` task that
+starts the generated app and checks that it resolves a local actor.  For Node.js
+package managers, it also adds the `tsx` development dependency when the smoke
+test needs it.
+
+Use `--skip-smoke-test` to omit the smoke-test script and `test` task:
+
+~~~~ sh
+fedify init my-fedify-project --skip-smoke-test
+~~~~
+
+The option also omits `tsx` when it was needed only by the smoke test.  A
+framework can still include `tsx` when its development or production tasks
+require it.
+
 
 `fedify lookup`: Looking up an ActivityPub object
 -------------------------------------------------

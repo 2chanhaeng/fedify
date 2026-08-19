@@ -3,18 +3,13 @@ import deps from "../json/deps.json" with { type: "json" };
 import { readTemplate } from "../lib.ts";
 import type { WebFrameworkDescription } from "../types.ts";
 import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
-import {
-  getInstruction,
-  getTestTask,
-  nodeBunDevToolTasks,
-  pmToRt,
-} from "./utils.ts";
+import { addTestTask, getInstruction, nodeBunDevToolTasks } from "./utils.ts";
 
 const bareBonesDescription: WebFrameworkDescription = {
   label: "Bare-bones",
   packageManagers: PACKAGE_MANAGER,
   defaultPort: 8000,
-  init: async ({ packageManager: pm }) => ({
+  init: async ({ packageManager: pm, rt, skipSmokeTest }) => ({
     dependencies: getDependencies(pm),
     devDependencies: {
       ...defaultDevDependencies,
@@ -26,7 +21,7 @@ const bareBonesDescription: WebFrameworkDescription = {
     loggingFile: "src/logging.ts",
     testFile: "scripts/smoke.test.ts",
     files: {
-      "src/main.ts": await readTemplate(`bare-bones/main/${pmToRt(pm)}.ts`),
+      "src/main.ts": await readTemplate(`bare-bones/main/${rt}.ts`),
     },
     compilerOptions: (pm === "deno"
       ? {
@@ -43,7 +38,7 @@ const bareBonesDescription: WebFrameworkDescription = {
         "noEmit": true,
         "strict": true,
       }) as Record<string, string | boolean | number | string[] | null>,
-    tasks: TASKS[pmToRt(pm)],
+    tasks: addTestTask(rt, skipSmokeTest)(TASKS[rt]),
     instruction: getInstruction(pm, 8000),
   }),
 };
@@ -69,18 +64,15 @@ const TASKS = {
   deno: {
     dev: "deno run -A --watch ./src/main.ts",
     prod: "deno run -A ./src/main.ts",
-    test: getTestTask("deno"),
   },
   bun: {
     dev: "bun run --hot ./src/main.ts",
     prod: "bun run ./src/main.ts",
-    test: getTestTask("bun"),
     ...nodeBunDevToolTasks,
   },
   node: {
     dev: "dotenvx run -- tsx watch ./src/main.ts",
     prod: "dotenvx run -- node --import tsx ./src/main.ts",
-    test: getTestTask("npm"),
     ...nodeBunDevToolTasks,
   },
 };

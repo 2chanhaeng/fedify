@@ -4,24 +4,24 @@ import { PACKAGE_VERSION, readTemplate } from "../lib.ts";
 import type { PackageManager, WebFrameworkDescription } from "../types.ts";
 import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
 import {
+  addTestTask,
   getInstruction,
   getNodeBunDevToolTasks,
   getTestDependencies,
-  getTestTask,
 } from "./utils.ts";
 
 const nuxtDescription: WebFrameworkDescription = {
   label: "Nuxt",
   packageManagers: PACKAGE_MANAGER,
   defaultPort: 3000,
-  init: async ({ packageManager: pm, testMode }) => ({
+  init: async ({ packageManager: pm, rt, skipSmokeTest, testMode }) => ({
     command: Array.from(getInitCommand(pm)),
     dependencies: getDeps(pm),
     devDependencies: {
       ...defaultDevDependencies,
       "typescript": deps["npm:typescript"],
       "@types/node": deps["npm:@types/node@25"],
-      ...getTestDependencies(pm),
+      ...getTestDependencies(pm, skipSmokeTest),
     },
     federationFile: "server/federation.ts",
     loggingFile: "server/logging.ts",
@@ -37,7 +37,7 @@ const nuxtDescription: WebFrameworkDescription = {
         "nuxt/server/plugins/logging.ts",
       ),
     },
-    tasks: { ...getNodeBunDevToolTasks(pm), test: getTestTask(pm) },
+    tasks: addTestTask(rt, skipSmokeTest)(getNodeBunDevToolTasks(pm)),
     instruction: getInstruction(pm, 3000),
   }),
 };

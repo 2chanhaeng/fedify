@@ -3,18 +3,13 @@ import deps from "../json/deps.json" with { type: "json" };
 import { PACKAGE_VERSION, readTemplate } from "../lib.ts";
 import type { WebFrameworkDescription } from "../types.ts";
 import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
-import {
-  getInstruction,
-  getTestTask,
-  nodeBunDevToolTasks,
-  pmToRt,
-} from "./utils.ts";
+import { addTestTask, getInstruction, nodeBunDevToolTasks } from "./utils.ts";
 
 const elysiaDescription: WebFrameworkDescription = {
   label: "Elysia",
   packageManagers: PACKAGE_MANAGER,
   defaultPort: 3000,
-  init: async ({ projectName, packageManager: pm }) => ({
+  init: async ({ projectName, packageManager: pm, rt, skipSmokeTest }) => ({
     dependencies: pm === "deno"
       ? {
         ...defaultDenoDependencies,
@@ -49,20 +44,22 @@ const elysiaDescription: WebFrameworkDescription = {
     testFile: "scripts/smoke.test.ts",
     files: {
       "src/index.ts": (await readTemplate(
-        `elysia/index/${pmToRt(pm)}.ts`,
+        `elysia/index/${rt}.ts`,
       )).replace(/\/\* logger \*\//, projectName),
     },
-    compilerOptions: pm === "deno" || pm === "bun" ? undefined : {
-      "lib": ["ESNext", "DOM"],
-      "target": "ESNext",
-      "module": "NodeNext",
-      "moduleResolution": "NodeNext",
-      "allowImportingTsExtensions": true,
-      "verbatimModuleSyntax": true,
-      "noEmit": true,
-      "strict": true,
-    },
-    tasks: TASKS[pmToRt(pm)],
+    compilerOptions: rt === "node"
+      ? {
+        "lib": ["ESNext", "DOM"],
+        "target": "ESNext",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "allowImportingTsExtensions": true,
+        "verbatimModuleSyntax": true,
+        "noEmit": true,
+        "strict": true,
+      }
+      : undefined,
+    tasks: addTestTask(rt, skipSmokeTest)(TASKS[rt]),
     instruction: getInstruction(pm, 3000),
   }),
 };
@@ -74,19 +71,16 @@ const TASKS = {
     dev:
       "deno serve --allow-read --allow-env --allow-net --watch ./src/index.ts",
     prod: "deno serve --allow-read --allow-env --allow-net ./src/index.ts",
-    test: getTestTask("deno"),
   },
   bun: {
     dev: "bun run --hot ./src/index.ts",
     prod: "bun run ./src/index.ts",
-    test: getTestTask("bun"),
     ...nodeBunDevToolTasks,
   },
   node: {
     dev: "dotenvx run -- tsx watch src/index.ts",
     build: "tsc src/index.ts --outDir dist",
     start: "NODE_ENV=production dotenvx run -- node dist/index.js",
-    test: getTestTask("npm"),
     ...nodeBunDevToolTasks,
   },
 };

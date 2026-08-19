@@ -2,7 +2,7 @@ import type { Message } from "@optique/core";
 import { commandLine, message } from "@optique/core/message";
 import deps from "../json/deps.json" with { type: "json" };
 import { getDevCommand } from "../lib.ts";
-import type { PackageManager } from "../types.ts";
+import type { PackageManager, Runtime } from "../types.ts";
 
 export const nodeBunDevToolTasks = {
   format: "oxfmt",
@@ -14,19 +14,21 @@ export const getNodeBunDevToolTasks = (
   pm: PackageManager,
 ): Record<string, string> => pm === "deno" ? {} : nodeBunDevToolTasks;
 
-const SMOKE_TEST_FILE = "scripts/smoke.test.ts";
-
 /**
- * Returns the `test` task command that runs the generated smoke-test
- * script (`WebFrameworkInitializer.testFile`) with the runtime matching the
- * given package manager.
+ * Returns a function that adds the smoke-test `test` task to an existing task
+ * record unless smoke-test generation is skipped.
  */
-export const getTestTask = (pm: PackageManager): string =>
-  pmToRt(pm) === "deno"
-    ? `deno run -A ${SMOKE_TEST_FILE}`
-    : pmToRt(pm) === "bun"
-    ? `bun run ${SMOKE_TEST_FILE}`
-    : `tsx ${SMOKE_TEST_FILE}`;
+export const addTestTask = (
+  rt: Runtime,
+  skipSmokeTest: boolean,
+): (tasks: Record<string, string>) => Record<string, string> =>
+(tasks) => skipSmokeTest ? tasks : { ...tasks, test: DEFAULT_TEST_TASKS[rt] };
+
+const DEFAULT_TEST_TASKS: Record<Runtime, string> = {
+  deno: `deno test`,
+  bun: `bun test --timeout 15000`,
+  node: `node --experimental-transform-types --test`,
+};
 
 /**
  * Returns the dev dependencies the `test` task needs beyond what the
@@ -35,8 +37,9 @@ export const getTestTask = (pm: PackageManager): string =>
  */
 export const getTestDependencies = (
   pm: PackageManager,
+  skipSmokeTest: boolean,
 ): Record<string, string> =>
-  pmToRt(pm) === "node" ? { tsx: deps["npm:tsx"] } : {};
+  !skipSmokeTest && pmToRt(pm) === "node" ? { tsx: deps["npm:tsx"] } : {};
 
 /**
  * Generates the post-initialization instruction message that shows

@@ -4,18 +4,17 @@ import { PACKAGE_VERSION, readTemplate } from "../lib.ts";
 import type { PackageManager, WebFrameworkDescription } from "../types.ts";
 import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
 import {
+  addTestTask,
   getInstruction,
   getTestDependencies,
-  getTestTask,
   nodeBunDevToolTasks,
-  pmToRt,
 } from "./utils.ts";
 
 const sveltekitDescription: WebFrameworkDescription = {
   label: "SvelteKit",
   packageManagers: PACKAGE_MANAGER,
   defaultPort: 5173,
-  init: async ({ packageManager: pm, testMode }) => ({
+  init: async ({ packageManager: pm, rt, skipSmokeTest, testMode }) => ({
     command: Array.from(getInitCommand(pm)),
     dependencies: {
       "@fedify/sveltekit": PACKAGE_VERSION,
@@ -25,10 +24,10 @@ const sveltekitDescription: WebFrameworkDescription = {
       ...defaultDevDependencies,
       "typescript": deps["npm:typescript"],
       "@types/node": deps["npm:@types/node@25"],
-      ...(pmToRt(pm) === "deno"
+      ...(rt === "deno"
         ? {}
         : { "@dotenvx/dotenvx": deps["npm:@dotenvx/dotenvx"] }),
-      ...getTestDependencies(pm),
+      ...getTestDependencies(pm, skipSmokeTest),
     },
     federationFile: "src/lib/federation.ts",
     loggingFile: "src/lib/logging.ts",
@@ -37,9 +36,7 @@ const sveltekitDescription: WebFrameworkDescription = {
     files: {
       "src/hooks.server.ts": await readTemplate("sveltekit/hooks.server.ts"),
     },
-    tasks: pmToRt(pm) === "deno"
-      ? { test: getTestTask("deno") }
-      : { ...TASKS, test: getTestTask(pm) },
+    tasks: addTestTask(rt, skipSmokeTest)(rt === "deno" ? {} : TASKS),
     instruction: getInstruction(pm, 5173),
   }),
 };

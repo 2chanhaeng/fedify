@@ -138,7 +138,9 @@ const getFiles = async <
     ...data,
   }),
   [data.initializer.loggingFile]: await loadLogging(data),
-  [data.initializer.testFile]: await loadTest(data),
+  ...(data.skipSmokeTest
+    ? {}
+    : { [data.initializer.testFile]: await loadTest(data) }),
   ".env": stringifyEnvs(data.env),
   ...data.initializer.files,
 });
@@ -189,7 +191,7 @@ const getJsons = <
 const getGeneratedFilePaths = (data: InitCommandData): string[] => [
   data.initializer.federationFile,
   data.initializer.loggingFile,
-  data.initializer.testFile,
+  ...(data.skipSmokeTest ? [] : [data.initializer.testFile]),
   ".env",
   ...Object.keys(data.initializer.files ?? {}),
   ...Object.keys(getJsons(data)),

@@ -3,22 +3,17 @@ import deps from "../json/deps.json" with { type: "json" };
 import { PACKAGE_VERSION, readTemplate } from "../lib.ts";
 import type { WebFrameworkDescription } from "../types.ts";
 import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
-import {
-  getInstruction,
-  getTestTask,
-  nodeBunDevToolTasks,
-  pmToRt,
-} from "./utils.ts";
+import { addTestTask, getInstruction, nodeBunDevToolTasks } from "./utils.ts";
 
 const expressDescription: WebFrameworkDescription = {
   label: "Express",
   packageManagers: PACKAGE_MANAGER,
   defaultPort: 8000,
-  init: async ({ projectName, packageManager: pm }) => ({
+  init: async ({ projectName, packageManager: pm, rt, skipSmokeTest }) => ({
     dependencies: {
       "npm:express": deps["npm:express"],
       "@fedify/express": PACKAGE_VERSION,
-      ...(pmToRt(pm) === "node" && {
+      ...(rt === "node" && {
         "@dotenvx/dotenvx": deps["npm:@dotenvx/dotenvx"],
         tsx: deps["npm:tsx"],
       }),
@@ -47,7 +42,7 @@ const expressDescription: WebFrameworkDescription = {
       "noEmit": true,
       "strict": true,
     },
-    tasks: TASKS[pmToRt(pm)],
+    tasks: addTestTask(rt, skipSmokeTest)(TASKS[rt]),
     instruction: getInstruction(pm, 8000),
   }),
 };
@@ -60,18 +55,15 @@ const TASKS = {
       "deno run --allow-read --allow-net --allow-env --allow-sys --watch ./src/index.ts",
     prod:
       "deno run --allow-read --allow-net --allow-env --allow-sys ./src/index.ts",
-    test: getTestTask("deno"),
   },
   bun: {
     dev: "bun run --hot ./src/index.ts",
     prod: "bun run ./src/index.ts",
-    test: getTestTask("bun"),
     ...nodeBunDevToolTasks,
   },
   node: {
     dev: "dotenvx run -- tsx watch ./src/index.ts",
     prod: "dotenvx run -- node --import tsx ./src/index.ts",
-    test: getTestTask("npm"),
     ...nodeBunDevToolTasks,
   },
 };

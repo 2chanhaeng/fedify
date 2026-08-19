@@ -58,6 +58,17 @@ test("assertNoGeneratedFileConflicts rejects existing cleanup files", async () =
   });
 });
 
+test("assertNoGeneratedFileConflicts ignores skipped smoke test", async () => {
+  await withTempDir(async (dir) => {
+    await mkdir(join(dir, "scripts"), { recursive: true });
+    await writeFile(join(dir, "scripts", "smoke.test.ts"), "");
+
+    await assert.doesNotReject(() =>
+      assertNoGeneratedFileConflicts(createInitData(dir, true, true))
+    );
+  });
+});
+
 test("assertNoGeneratedFileConflicts skips checks without allowNonEmpty", async () => {
   await withTempDir(async (dir) => {
     await writeFile(join(dir, "package.json"), "{}\n");
@@ -104,20 +115,34 @@ test("patchFiles writes the smoke-test script", async () => {
   });
 });
 
+test("patchFiles skips the smoke-test script when requested", async () => {
+  await withTempDir(async (dir) => {
+    await patchFiles(createInitData(dir, false, true));
+
+    await assert.rejects(
+      readFile(join(dir, "scripts", "smoke.test.ts"), "utf8"),
+      { code: "ENOENT" },
+    );
+  });
+});
+
 function createInitData(
   dir: string,
   allowNonEmpty: boolean,
+  skipSmokeTest = false,
 ): InitCommandData {
   const data = {
     command: "init",
     projectName: "example",
     packageManager: "npm",
+    rt: "node",
     webFramework: "bare-bones",
     kvStore: "in-memory",
     messageQueue: "in-process",
     dryRun: false,
     allowNonEmpty,
     skipInstall: false,
+    skipSmokeTest,
     testMode: false,
     dir,
     initializer: {

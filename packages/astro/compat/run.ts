@@ -154,10 +154,12 @@ async function getAstroConfig(
     skipInstall: false,
     kvStore: "in-memory",
     messageQueue: "in-process",
+    rt: testCase.runtime,
     packageManager: testCase.runtime === "node" ? "npm" : testCase.runtime,
     projectName: "fedify-astro-compat",
     testMode: true,
     webFramework: "astro",
+    skipSmokeTest: false,
   });
   const config = initializer.files?.["astro.config.ts"];
   if (config == null) throw new Error("Astro initializer produced no config");

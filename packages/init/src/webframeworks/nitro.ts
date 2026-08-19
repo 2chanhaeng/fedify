@@ -3,17 +3,17 @@ import { PACKAGE_VERSION, readTemplate } from "../lib.ts";
 import type { PackageManager, WebFrameworkDescription } from "../types.ts";
 import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
 import {
+  addTestTask,
   getInstruction,
   getNodeBunDevToolTasks,
   getTestDependencies,
-  getTestTask,
 } from "./utils.ts";
 
 const nitroDescription: WebFrameworkDescription = {
   label: "Nitro",
   packageManagers: PACKAGE_MANAGER,
   defaultPort: 3000,
-  init: async ({ packageManager: pm, testMode }) => ({
+  init: async ({ packageManager: pm, rt, skipSmokeTest, testMode }) => ({
     command: getNitroInitCommand(pm),
     cleanupFiles: pm === "deno" ? [] : ["server/routes/index.ts"],
     cleanupPackageJson: pm === "deno" ? {} : {
@@ -25,7 +25,7 @@ const nitroDescription: WebFrameworkDescription = {
     },
     devDependencies: {
       ...defaultDevDependencies,
-      ...getTestDependencies(pm),
+      ...getTestDependencies(pm, skipSmokeTest),
     },
     federationFile: "server/federation.ts",
     loggingFile: "server/logging.ts",
@@ -69,7 +69,7 @@ const nitroDescription: WebFrameworkDescription = {
       lib: ["ESNext", "DOM"],
       baseUrl: ".",
     },
-    tasks: { ...getNodeBunDevToolTasks(pm), test: getTestTask(pm) },
+    tasks: addTestTask(rt, skipSmokeTest)(getNodeBunDevToolTasks(pm)),
     instruction: getInstruction(pm, 3000),
   }),
 };

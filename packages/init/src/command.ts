@@ -59,7 +59,8 @@ const messageQueue = optional(option(
 /**
  * The `@optique/core` option schema for the `fedify init` command.
  * Defines `dir`, `webFramework`, `packageManager`, `kvStore`, `messageQueue`,
- * `dryRun`, and `allowNonEmpty` options that the CLI parser will accept.
+ * `dryRun`, `allowNonEmpty`, `skipInstall`, and `skipSmokeTest` options that
+ * the CLI parser will accept.
  */
 export const initOptions = object("Initialization options", {
   dir: optional(argument(path({ metavar: "DIR" }), {
@@ -80,6 +81,10 @@ export const initOptions = object("Initialization options", {
   skipInstall: option("--skip-install", {
     description:
       message`Skip installing dependencies after scaffolding the project.`,
+  }),
+  skipSmokeTest: option("--skip-smoke-test", {
+    description: message`Skip generating the smoke-test script and \
+the ${"test"} task in the scaffolded project.`,
   }),
 });
 

@@ -4,17 +4,17 @@ import { PACKAGE_VERSION, readTemplate } from "../lib.ts";
 import type { PackageManager, WebFrameworkDescription } from "../types.ts";
 import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
 import {
+  addTestTask,
   getInstruction,
   getNodeBunDevToolTasks,
   getTestDependencies,
-  getTestTask,
 } from "./utils.ts";
 
 const nextDescription: WebFrameworkDescription = {
   label: "Next.js",
   packageManagers: PACKAGE_MANAGER,
   defaultPort: 3000,
-  init: async ({ packageManager: pm, skipInstall }) => ({
+  init: async ({ packageManager: pm, rt, skipInstall, skipSmokeTest }) => ({
     command: getNextInitCommand(pm, skipInstall),
     cleanupFiles: pm === "deno" ? [] : ["eslint.config.mjs"],
     cleanupPackageJson: pm === "deno" ? {} : {
@@ -28,7 +28,7 @@ const nextDescription: WebFrameworkDescription = {
     devDependencies: {
       "@types/node": deps["npm:@types/node@20"],
       ...defaultDevDependencies,
-      ...getTestDependencies(pm),
+      ...getTestDependencies(pm, skipSmokeTest),
     },
     federationFile: "federation/index.ts",
     loggingFile: "logging.ts",
@@ -40,7 +40,7 @@ const nextDescription: WebFrameworkDescription = {
       "instrumentation.ts": await readTemplate("next/instrumentation.ts"),
       "middleware.ts": await readTemplate("next/middleware.ts"),
     },
-    tasks: { ...getNodeBunDevToolTasks(pm), test: getTestTask(pm) },
+    tasks: addTestTask(rt, skipSmokeTest)(getNodeBunDevToolTasks(pm)),
     instruction: getInstruction(pm, 3000),
   }),
 };
