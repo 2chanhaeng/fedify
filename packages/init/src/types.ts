@@ -141,7 +141,7 @@ export interface WebFrameworkDescription {
    * framework, given the user's selected options.
    */
   init(
-    data: InitCommandOptions & { projectName: string; testMode: boolean },
+    data: Omit<InitCommandData, "initializer" | "kv" | "mq" | "env">,
   ): WebFrameworkInitializer | Promise<WebFrameworkInitializer>;
 }
 
@@ -195,9 +195,9 @@ export interface KvStoreDescription {
  * Fully resolved initialization options with all fields guaranteed non-null.
  * Created after the user has answered all interactive prompts.
  */
-export type InitCommandOptions = RequiredNotNull<InitCommand> & {
+export interface InitCommandOptions extends RequiredNotNull<InitCommand> {
   readonly testMode: boolean;
-};
+}
 
 /**
  * The complete data object used throughout the initialization process.
@@ -215,6 +215,8 @@ export interface InitCommandData extends InitCommandOptions {
   readonly mq: MessageQueueDescription;
   /** Combined environment variables from both KV store and message queue. */
   readonly env: Record<string, string>;
+  /** The resolved runtime derived from package manager */
+  readonly rt: Runtime;
 }
 
 /** A synchronous side-effect function that operates on {@link InitCommandData}. */

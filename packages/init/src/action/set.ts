@@ -2,7 +2,6 @@ import { pipe } from "@fxts/core";
 import { existsSync } from "node:fs";
 import { realpath } from "node:fs/promises";
 import { basename, normalize } from "node:path";
-import { merge, set } from "../utils.ts";
 import { kvStores, messageQueues } from "../lib.ts";
 import type {
   InitCommandData,
@@ -11,10 +10,13 @@ import type {
   KvStoreDescription,
   MessageQueue,
   MessageQueueDescription,
+  PackageManager,
   WebFrameworkDescription,
   WebFrameworkInitializer,
 } from "../types.ts";
+import { merge, set } from "../utils.ts";
 import webFrameworks from "../webframeworks/mod.ts";
+import { pmToRt } from "../webframeworks/utils.ts";
 
 /**
  * Set all necessary data for initializing the project.
@@ -29,6 +31,7 @@ const setData = (data: InitCommandOptions): Promise<InitCommandData> =>
   pipe(
     data,
     setProjectName,
+    setRt,
     setInitializer,
     setKv,
     setMq,
@@ -42,6 +45,11 @@ const setProjectName = set(
   async <T extends { dir: string }>({ dir }: T) =>
     basename(existsSync(dir) ? await realpath(dir) : normalize(dir)),
 );
+
+const setRt = set("rt", <
+  T extends { packageManager: PackageManager },
+>({ packageManager }: T) => pmToRt(packageManager));
+
 const setInitializer = set("initializer", <
   T extends Parameters<WebFrameworkDescription["init"]>[0],
 >(data: T) => webFrameworks[data.webFramework].init(data));
@@ -56,6 +64,7 @@ const setMq = set(
     T extends { messageQueue: MessageQueue },
   >({ messageQueue }: T) => messageQueues[messageQueue],
 );
+
 const setEnv = set(
   "env",
   <
