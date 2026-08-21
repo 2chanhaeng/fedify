@@ -7,7 +7,6 @@ import {
   addTestTask,
   getInstruction,
   getNodeBunDevToolTasks,
-  getTestDependencies,
 } from "./utils.ts";
 
 const nextDescription: WebFrameworkDescription = {
@@ -28,7 +27,6 @@ const nextDescription: WebFrameworkDescription = {
     devDependencies: {
       "@types/node": deps["npm:@types/node@20"],
       ...defaultDevDependencies,
-      ...getTestDependencies(pm, skipSmokeTest),
     },
     federationFile: "federation/index.ts",
     loggingFile: "logging.ts",

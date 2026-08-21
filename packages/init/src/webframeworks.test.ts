@@ -8,18 +8,18 @@ import webFrameworks from "./webframeworks/mod.ts";
 import nextDescription from "./webframeworks/next.ts";
 import nitroDescription from "./webframeworks/nitro.ts";
 import solidstartDescription from "./webframeworks/solidstart.ts";
-import { addTestTask } from "./webframeworks/utils.ts";
+import { addTestTask, pmToRt } from "./webframeworks/utils.ts";
 
 test("addTestTask adds a test task to existing tasks", () => {
-  deepEqual(addTestTask("node", false)({ dev: "tsx watch src/index.ts" }), {
-    dev: "tsx watch src/index.ts",
-    test: "node --experimental-transform-types --test",
+  deepEqual(addTestTask("node", false)({ dev: "node --watch src/index.ts" }), {
+    dev: "node --watch src/index.ts",
+    test: "node --test",
   });
 });
 
 test("addTestTask preserves existing tasks when smoke tests are skipped", () => {
-  deepEqual(addTestTask("node", true)({ dev: "tsx watch src/index.ts" }), {
-    dev: "tsx watch src/index.ts",
+  deepEqual(addTestTask("node", true)({ dev: "node --watch src/index.ts" }), {
+    dev: "node --watch src/index.ts",
   });
 });
 
@@ -211,12 +211,6 @@ test("templates omit smoke-test tasks and dependencies when skipped", async () =
     });
 
     equal(initializer.tasks?.test, undefined);
-    if (webFramework === "sveltekit") {
-      equal(initializer.devDependencies?.tsx, undefined);
-    }
-    if (webFramework === "elysia") {
-      equal(initializer.devDependencies?.tsx != null, true);
-    }
   }
 });
 
@@ -252,5 +246,73 @@ test("README.md's web framework list matches the framework registry", async () =
   }
   if (errorMsg.length > 0) {
     throw new Error(errorMsg.join("\n"));
+  }
+});
+
+test("templates rely on the runtime and framework to load .env", async () => {
+  for (const [webFramework, description] of Object.entries(webFrameworks)) {
+    for (
+      const packageManager of ["npm", "pnpm", "yarn", "deno", "bun"] as const
+    ) {
+      if (!description.packageManagers.includes(packageManager)) continue;
+      const initializer = await description.init({
+        projectName: "test-app",
+        dir: ".",
+        command: "init",
+        packageManager,
+        rt: packageManager === "deno"
+          ? "deno"
+          : packageManager === "bun"
+          ? "bun"
+          : "node",
+        kvStore: "in-memory",
+        messageQueue: "in-process",
+        webFramework: webFramework as keyof typeof webFrameworks,
+        testMode: false,
+        dryRun: true,
+        allowNonEmpty: false,
+        skipInstall: false,
+        skipSmokeTest: false,
+      });
+
+      const label = `${webFramework}/${packageManager}`;
+      equal(initializer.dependencies?.["@dotenvx/dotenvx"], undefined, label);
+      equal(
+        initializer.devDependencies?.["@dotenvx/dotenvx"],
+        undefined,
+        label,
+      );
+      for (const [name, task] of Object.entries(initializer.tasks ?? {})) {
+        equal(task.includes("dotenvx"), false, `${label} ${name}`);
+        equal(task.includes("tsx"), false, `${label} ${name}`);
+        equal(
+          task.includes("--experimental-transform-types"),
+          false,
+          `${label} ${name}`,
+        );
+      }
+    }
+  }
+});
+
+test("SolidStart start tasks load .env for the built server", async () => {
+  for (const packageManager of ["npm", "deno"] as const) {
+    const { tasks } = await solidstartDescription.init({
+      projectName: "test-app",
+      dir: ".",
+      command: "init",
+      packageManager,
+      rt: pmToRt(packageManager),
+      kvStore: "in-memory",
+      messageQueue: "in-process",
+      webFramework: "solidstart",
+      testMode: false,
+      dryRun: true,
+      allowNonEmpty: false,
+      skipInstall: false,
+      skipSmokeTest: false,
+    });
+    ok(tasks?.start.includes("--env-file=.env"), packageManager);
+    ok(tasks?.start.includes("./.output/server/index.mjs"), packageManager);
   }
 });

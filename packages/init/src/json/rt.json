@@ -24,6 +24,6 @@
       "--version"
     ],
     "outputPattern": "^v(\\d+\\.\\d+\\.\\d+\\b)",
-    "minVersion": "22.0.0"
+    "minVersion": "22.18.0"
   }
 }

@@ -6,9 +6,9 @@ test("setData resolves the runtime before initializing the framework", async () 
   const cases = [
     ["deno", "deno", "deno test"],
     ["bun", "bun", "bun test --timeout 15000"],
-    ["npm", "node", "node --experimental-transform-types --test"],
-    ["pnpm", "node", "node --experimental-transform-types --test"],
-    ["yarn", "node", "node --experimental-transform-types --test"],
+    ["npm", "node", "node --test"],
+    ["pnpm", "node", "node --test"],
+    ["yarn", "node", "node --test"],
   ] as const;
 
   for (const [packageManager, rt, testTask] of cases) {

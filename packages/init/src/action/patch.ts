@@ -115,8 +115,11 @@ export async function assertNoGeneratedFileConflicts(
 }
 
 export class GeneratedFileConflictError extends Error {
-  constructor(public readonly conflicts: readonly string[]) {
+  readonly conflicts: readonly string[];
+
+  constructor(conflicts: readonly string[]) {
     super(formatConflictMessage(conflicts));
+    this.conflicts = conflicts;
     this.name = "GeneratedFileConflictError";
   }
 }

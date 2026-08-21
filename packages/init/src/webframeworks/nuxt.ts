@@ -7,7 +7,6 @@ import {
   addTestTask,
   getInstruction,
   getNodeBunDevToolTasks,
-  getTestDependencies,
 } from "./utils.ts";
 
 const nuxtDescription: WebFrameworkDescription = {
@@ -21,7 +20,6 @@ const nuxtDescription: WebFrameworkDescription = {
       ...defaultDevDependencies,
       "typescript": deps["npm:typescript"],
       "@types/node": deps["npm:@types/node@25"],
-      ...getTestDependencies(pm, skipSmokeTest),
     },
     federationFile: "server/federation.ts",
     loggingFile: "server/logging.ts",

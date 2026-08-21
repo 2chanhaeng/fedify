@@ -1,6 +1,5 @@
 import type { Message } from "@optique/core";
 import { commandLine, message } from "@optique/core/message";
-import deps from "../json/deps.json" with { type: "json" };
 import { getDevCommand } from "../lib.ts";
 import type { PackageManager, Runtime } from "../types.ts";
 
@@ -27,19 +26,8 @@ export const addTestTask = (
 const DEFAULT_TEST_TASKS: Record<Runtime, string> = {
   deno: `deno test`,
   bun: `bun test --timeout 15000`,
-  node: `node --experimental-transform-types --test`,
+  node: `node --test`,
 };
-
-/**
- * Returns the dev dependencies the `test` task needs beyond what the
- * framework already declares.  Node.js runs the smoke-test script through
- * `tsx`; Deno and Bun execute TypeScript natively.
- */
-export const getTestDependencies = (
-  pm: PackageManager,
-  skipSmokeTest: boolean,
-): Record<string, string> =>
-  !skipSmokeTest && pmToRt(pm) === "node" ? { tsx: deps["npm:tsx"] } : {};
 
 /**
  * Generates the post-initialization instruction message that shows

@@ -172,9 +172,9 @@ test("verifyRuntimeVersion rejects lower versions", () => {
 });
 
 test("resolveRequiredVersion raises the base minimum for stricter frameworks", () => {
-  strictEqual(resolveRequiredVersion("node", "22.12.0"), "22.12.0");
-  strictEqual(resolveRequiredVersion("node", "21.0.0"), "22.0.0");
-  strictEqual(resolveRequiredVersion("node", undefined), "22.0.0");
+  strictEqual(resolveRequiredVersion("node", "22.20.0"), "22.20.0");
+  strictEqual(resolveRequiredVersion("node", "21.0.0"), "22.18.0");
+  strictEqual(resolveRequiredVersion("node", undefined), "22.18.0");
 });
 
 test("deno outputPattern extracts stable and pre-release versions", () => {

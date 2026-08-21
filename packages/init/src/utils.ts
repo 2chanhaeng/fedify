@@ -129,15 +129,24 @@ export const isNotFoundError = (
  */
 export class CommandError extends Error {
   public commandLine: string;
+  public stdout: string;
+  public stderr: string;
+  public code: number;
+  public command: string[];
+
   constructor(
     message: string,
-    public stdout: string,
-    public stderr: string,
-    public code: number,
-    public command: string[],
+    stdout: string,
+    stderr: string,
+    code: number,
+    command: string[],
   ) {
     super(message);
     this.name = "CommandError";
+    this.stdout = stdout;
+    this.stderr = stderr;
+    this.code = code;
+    this.command = command;
     this.commandLine = command.join(" ");
   }
 }

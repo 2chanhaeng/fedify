@@ -54,9 +54,7 @@ const getDependencies = (pm: string): Record<string, string> =>
     : pm === "bun"
     ? { "npm:x-forwarded-fetch": deps["npm:x-forwarded-fetch"] }
     : {
-      "npm:@dotenvx/dotenvx": deps["npm:@dotenvx/dotenvx"],
       "npm:@hono/node-server": deps["npm:@hono/node-server"],
-      "npm:tsx": deps["npm:tsx"],
       "npm:x-forwarded-fetch": deps["npm:x-forwarded-fetch"],
     };
 
@@ -71,8 +69,8 @@ const TASKS = {
     ...nodeBunDevToolTasks,
   },
   node: {
-    dev: "dotenvx run -- tsx watch ./src/main.ts",
-    prod: "dotenvx run -- node --import tsx ./src/main.ts",
+    dev: "node --env-file=.env --watch ./src/main.ts",
+    prod: "node --env-file=.env ./src/main.ts",
     ...nodeBunDevToolTasks,
   },
 };

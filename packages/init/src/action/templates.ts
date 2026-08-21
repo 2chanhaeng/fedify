@@ -1,7 +1,11 @@
 import { concat, entries, join, map, pipe, when } from "@fxts/core";
 import { toMerged } from "es-toolkit";
 import { getDevCommand, readTemplate } from "../lib.ts";
-import type { InitCommandData, PackageManager } from "../types.ts";
+import type {
+  InitCommandData,
+  PackageManager,
+  WebFramework,
+} from "../types.ts";
 import { replace } from "../utils.ts";
 import { needsDenoDotenv } from "./utils.ts";
 
@@ -21,14 +25,21 @@ export const loadFederation = async (
     kv,
     mq,
     packageManager,
+    webFramework,
   }: InitCommandData & { imports: string },
 ) =>
   pipe(
     await readTemplate(getFederationTemplate(packageManager)),
     replace(/\/\* imports \*\//, imports),
     replace(/\/\* logger \*\//, JSON.stringify(projectName)),
-    replace(/\/\* kv \*\//, convertEnv(kv.object, packageManager)),
-    replace(/\/\* queue \*\//, convertEnv(mq.object, packageManager)),
+    replace(
+      /\/\* kv \*\//,
+      convertEnv(kv.object, { packageManager, webFramework }),
+    ),
+    replace(
+      /\/\* queue \*\//,
+      convertEnv(mq.object, { packageManager, webFramework }),
+    ),
   );
 
 const getFederationTemplate = (packageManager: PackageManager): string =>
@@ -96,7 +107,9 @@ export const loadTest = async (
  * @param param0 - InitCommandData containing kv, mq, packageManager, and env
  * @returns A multi-line string containing all necessary import statements
  */
-export const getImports = ({ kv, mq, packageManager, env }: InitCommandData) =>
+export const getImports = (
+  { kv, mq, packageManager, webFramework, env }: InitCommandData,
+) =>
   pipe(
     toMerged(kv.imports, mq.imports),
     entries,
@@ -113,8 +126,23 @@ export const getImports = ({ kv, mq, packageManager, env }: InitCommandData) =>
       () => needsDenoDotenv({ packageManager, env }),
       concat(['import "@std/dotenv/load";']),
     ),
+    when(
+      () => needsSvelteKitEnv({ webFramework, env }),
+      concat([SVELTEKIT_ENV_IMPORT]),
+    ),
     join("\n"),
   );
+
+/**
+ * SvelteKit never copies *.env* into `process.env`; its Vite plugin exposes the
+ * values through the `$env/dynamic/private` module instead, which reads *.env*
+ * in `vite dev` and `process.env` in production.
+ */
+const SVELTEKIT_ENV_IMPORT = 'import { env } from "$env/dynamic/private";';
+
+const needsSvelteKitEnv = (
+  { webFramework, env }: Pick<InitCommandData, "webFramework" | "env">,
+) => webFramework === "sveltekit" && Object.keys(env).length > 0;
 
 /**
  * Converts import mappings to named import string with aliases.
@@ -131,19 +159,43 @@ export const getAlias = (imports: Record<string, string>) =>
     .join(", ");
 
 const ENV_REG_EXP = /process\.env\.(\w+)/g;
+
 /**
- * Converts Node.js environment variable access to Deno-compatible syntax when
- * needed.
- * Transforms `process.env.VAR_NAME` to `Deno.env.get("VAR_NAME")` for Deno
- * projects.
+ * Rewrites `process.env.VAR_NAME` references in a template snippet to the
+ * environment variable accessor that the target framework and runtime
+ * actually populate from *.env*:
+ *
+ * - Astro: `import.meta.env.VAR_NAME`, which Vite replaces statically for
+ *   server code in both `astro dev` and `astro build`.
+ * - SvelteKit: `env.VAR_NAME` from `$env/dynamic/private`; the import is
+ *   added by {@link getImports}.
+ * - Deno (other frameworks): `Deno.env.get("VAR_NAME")`.
+ * - Otherwise the `process.env.VAR_NAME` reference is kept as is.
  *
  * @param obj - The object string containing potential environment variable
  * references
- * @param pm - The package manager (runtime) being used
- * @returns The converted object string with appropriate environment variable
- * access syntax
+ * @param data - The package manager and web framework being used
+ * @returns The converted object string with the appropriate environment
+ * variable access syntax
  */
-export const convertEnv = (obj: string, pm: PackageManager) =>
-  pm === "deno" && ENV_REG_EXP.test(obj)
-    ? obj.replaceAll(ENV_REG_EXP, (_, g1) => `Deno.env.get("${g1}")`)
-    : obj;
+export const convertEnv = (
+  obj: string,
+  { packageManager, webFramework }: Pick<
+    InitCommandData,
+    "packageManager" | "webFramework"
+  >,
+) =>
+  obj.replaceAll(
+    ENV_REG_EXP,
+    (_, name) => getEnvAccessor(packageManager, webFramework)(name),
+  );
+
+const getEnvAccessor =
+  (pm: PackageManager, wf: WebFramework) => (name: string): string =>
+    wf === "astro"
+      ? `import.meta.env.${name}`
+      : wf === "sveltekit"
+      ? `env.${name}`
+      : pm === "deno"
+      ? `Deno.env.get(${JSON.stringify(name)})`
+      : `process.env.${name}`;

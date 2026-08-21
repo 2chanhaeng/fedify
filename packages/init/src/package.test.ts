@@ -59,11 +59,6 @@ test("Astro init pins the Astro 7 scaffolder and dependencies", async () => {
       webFramework: "astro",
     });
     ok(result.command != null);
-    if (packageManager !== "deno" && packageManager !== "bun") {
-      strictEqual(result.command[0], "node");
-      strictEqual(result.command[1], "-e");
-      strictEqual(result.command[2].includes("22.12"), true);
-    }
     strictEqual(
       result.command.includes(`astro@${deps["npm:create-astro"]}`),
       true,

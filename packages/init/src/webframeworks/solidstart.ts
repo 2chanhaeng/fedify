@@ -3,12 +3,7 @@ import deps from "../json/deps.json" with { type: "json" };
 import { PACKAGE_VERSION, readTemplate } from "../lib.ts";
 import type { WebFrameworkDescription } from "../types.ts";
 import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
-import {
-  addTestTask,
-  getInstruction,
-  getTestDependencies,
-  nodeBunDevToolTasks,
-} from "./utils.ts";
+import { addTestTask, getInstruction, nodeBunDevToolTasks } from "./utils.ts";
 
 const NPM_SOLIDSTART = `npm:@solidjs/start@${deps["npm:@solidjs/start"]}`;
 const solidstartDescription: WebFrameworkDescription = {
@@ -21,7 +16,6 @@ const solidstartDescription: WebFrameworkDescription = {
       ...defaultDevDependencies,
       typescript: deps["npm:typescript"],
       "@types/node": deps["npm:@types/node@22"],
-      ...getTestDependencies(pm, skipSmokeTest),
     },
     federationFile: "src/federation.ts",
     loggingFile: "src/logging.ts",
@@ -80,7 +74,6 @@ const getDependencies = (pm: string): Record<string, string> =>
       "@fedify/solidstart": PACKAGE_VERSION,
     }
     : {
-      "@dotenvx/dotenvx": deps["npm:@dotenvx/dotenvx"],
       "@solidjs/router": deps["npm:@solidjs/router"],
       "@solidjs/start": deps["npm:@solidjs/start"],
       "solid-js": deps["npm:solid-js"],
@@ -100,7 +93,8 @@ const TASKS = {
   deno: {
     dev: "deno run -A npm:vinxi dev",
     build: "deno run -A npm:vinxi build",
-    start: "deno run -A npm:vinxi start",
+    start:
+      "deno run --allow-net --allow-read --allow-write --allow-env --unstable-byonm --env-file=.env ./.output/server/index.mjs",
   },
   bun: {
     dev: "bunx vinxi dev",
@@ -111,7 +105,7 @@ const TASKS = {
   node: {
     dev: "vinxi dev",
     build: "vinxi build",
-    start: "dotenvx run -- vinxi start",
+    start: "node --env-file=.env ./.output/server/index.mjs",
     ...nodeBunDevToolTasks,
   },
 };

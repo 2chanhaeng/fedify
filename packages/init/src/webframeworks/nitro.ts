@@ -6,7 +6,6 @@ import {
   addTestTask,
   getInstruction,
   getNodeBunDevToolTasks,
-  getTestDependencies,
 } from "./utils.ts";
 
 const nitroDescription: WebFrameworkDescription = {
@@ -23,10 +22,7 @@ const nitroDescription: WebFrameworkDescription = {
       "@fedify/h3": PACKAGE_VERSION,
       ...(pm === "deno" && defaultDenoDependencies),
     },
-    devDependencies: {
-      ...defaultDevDependencies,
-      ...getTestDependencies(pm, skipSmokeTest),
-    },
+    devDependencies: defaultDevDependencies,
     federationFile: "server/federation.ts",
     loggingFile: "server/logging.ts",
     testFile: "scripts/smoke.test.ts",
@@ -43,7 +39,7 @@ const nitroDescription: WebFrameworkDescription = {
       ),
       "server/error.ts": await readTemplate("nitro/server/error.ts"),
       "nitro.config.ts": await readTemplate("nitro/nitro.config.ts"),
-      ...(pm === "deno" ? {} : {
+      ...(pm !== "deno" && {
         "server/routes/index.ts": await readTemplate(
           "nitro/server/routes/index.ts",
         ),

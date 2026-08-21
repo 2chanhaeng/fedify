@@ -21,14 +21,12 @@ const honoDescription: WebFrameworkDescription = {
     loggingFile: "src/logging.ts",
     testFile: "scripts/smoke.test.ts",
     files: {
-      "src/app.tsx": pipe(
-        await readTemplate("hono/app.tsx"),
+      "src/app.ts": pipe(
+        await readTemplate("hono/app.ts"),
         replace(/\/\* hono \*\//, pm === "deno" ? "@hono/hono" : "hono"),
         replace(/\/\* logger \*\//, projectName),
       ),
-      "src/index.ts": await readTemplate(
-        `hono/index/${rt}.ts`,
-      ),
+      "src/index.ts": await readTemplate(`hono/index/${rt}.ts`),
     },
     compilerOptions: pm === "deno" ? undefined : {
       "lib": ["ESNext", "DOM"],
@@ -64,10 +62,8 @@ const getDependencies = (pm: string): Record<string, string> =>
       "@fedify/hono": PACKAGE_VERSION,
     }
     : {
-      "@dotenvx/dotenvx": deps["npm:@dotenvx/dotenvx"],
       hono: deps["npm:hono"],
       "@hono/node-server": deps["npm:@hono/node-server"],
-      tsx: deps["npm:tsx"],
       "x-forwarded-fetch": deps["npm:x-forwarded-fetch"],
       "@fedify/hono": PACKAGE_VERSION,
     };
@@ -83,8 +79,8 @@ const TASKS = {
     ...nodeBunDevToolTasks,
   },
   node: {
-    dev: "dotenvx run -- tsx watch ./src/index.ts",
-    prod: "dotenvx run -- node --import tsx ./src/index.ts",
+    dev: "node --env-file=.env --watch ./src/index.ts",
+    prod: "node --env-file=.env ./src/index.ts",
     ...nodeBunDevToolTasks,
   },
 };

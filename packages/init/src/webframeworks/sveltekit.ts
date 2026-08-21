@@ -3,12 +3,7 @@ import deps from "../json/deps.json" with { type: "json" };
 import { PACKAGE_VERSION, readTemplate } from "../lib.ts";
 import type { PackageManager, WebFrameworkDescription } from "../types.ts";
 import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
-import {
-  addTestTask,
-  getInstruction,
-  getTestDependencies,
-  nodeBunDevToolTasks,
-} from "./utils.ts";
+import { addTestTask, getInstruction, nodeBunDevToolTasks } from "./utils.ts";
 
 const sveltekitDescription: WebFrameworkDescription = {
   label: "SvelteKit",
@@ -24,10 +19,6 @@ const sveltekitDescription: WebFrameworkDescription = {
       ...defaultDevDependencies,
       "typescript": deps["npm:typescript"],
       "@types/node": deps["npm:@types/node@25"],
-      ...(rt === "deno"
-        ? {}
-        : { "@dotenvx/dotenvx": deps["npm:@dotenvx/dotenvx"] }),
-      ...getTestDependencies(pm, skipSmokeTest),
     },
     federationFile: "src/lib/federation.ts",
     loggingFile: "src/lib/logging.ts",
@@ -73,8 +64,8 @@ const getSvelteKitInitCommand = (pm: PackageManager): string[] =>
     : [pm, "dlx", "sv", "create"];
 
 const TASKS = {
-  "dev": "dotenvx run -- vite dev",
-  "build": "dotenvx run -- vite build",
-  "preview": "dotenvx run -- vite preview",
+  "dev": "vite dev",
+  "build": "vite build",
+  "preview": "vite preview",
   ...nodeBunDevToolTasks,
 };

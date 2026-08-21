@@ -13,15 +13,11 @@ const expressDescription: WebFrameworkDescription = {
     dependencies: {
       "npm:express": deps["npm:express"],
       "@fedify/express": PACKAGE_VERSION,
-      ...(rt === "node" && {
-        "@dotenvx/dotenvx": deps["npm:@dotenvx/dotenvx"],
-        tsx: deps["npm:tsx"],
-      }),
       ...(pm === "deno" && defaultDenoDependencies),
     },
     devDependencies: {
       "@types/express": deps["npm:@types/express"],
-      ...(pm === "bun" ? { "@types/bun": deps["npm:@types/bun"] } : {}),
+      ...(pm === "bun" && { "@types/bun": deps["npm:@types/bun"] }),
       ...defaultDevDependencies,
     },
     federationFile: "src/federation.ts",
@@ -62,8 +58,8 @@ const TASKS = {
     ...nodeBunDevToolTasks,
   },
   node: {
-    dev: "dotenvx run -- tsx watch ./src/index.ts",
-    prod: "dotenvx run -- node --import tsx ./src/index.ts",
+    dev: "node --env-file=.env --watch ./src/index.ts",
+    prod: "node --env-file=.env ./src/index.ts",
     ...nodeBunDevToolTasks,
   },
 };

@@ -399,19 +399,15 @@ happen as usual; only the final install step is skipped.
 *This option is available since Fedify 2.4.0.*
 
 By default, `fedify init` creates *scripts/smoke.test.ts* and a `test` task that
-starts the generated app and checks that it resolves a local actor.  For Node.js
-package managers, it also adds the `tsx` development dependency when the smoke
-test needs it.
+starts the generated app and checks that it resolves a local actor.  The test
+runs on the runtime's built-in test runner and TypeScript support, so it adds
+no extra dependencies; on Node.js this requires Node.js 22.18.0 or later.
 
 Use `--skip-smoke-test` to omit the smoke-test script and `test` task:
 
 ~~~~ sh
 fedify init my-fedify-project --skip-smoke-test
 ~~~~
-
-The option also omits `tsx` when it was needed only by the smoke test.  A
-framework can still include `tsx` when its development or production tasks
-require it.
 
 
 `fedify lookup`: Looking up an ActivityPub object

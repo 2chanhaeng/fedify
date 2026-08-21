@@ -1,5 +1,5 @@
 import { behindProxy } from "@hongminhee/x-forwarded-fetch";
-import app from "./app.tsx";
+import app from "./app.ts";
 import "./logging.ts";
 
 Deno.serve(

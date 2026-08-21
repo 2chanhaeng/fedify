@@ -27,7 +27,7 @@
   "engines": {
     "node": ">=20.0.0",
     "bun": ">=1.2.0",
-    "denp": ">=2.0.0"
+    "deno": ">=2.0.0"
   },
   "type": "module",
   "main": "./dist/mod.js",
@@ -68,7 +68,7 @@
     "prepack": "pnpm build",
     "prepublish": "pnpm build",
     "pretest": "pnpm build",
-    "test": "node --test --experimental-transform-types 'src/**/*.test.ts'",
+    "test": "node --test 'src/**/*.test.ts'",
     "test-init": "deno task test-init"
   }
 }
