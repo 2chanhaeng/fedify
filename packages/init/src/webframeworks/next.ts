@@ -1,3 +1,4 @@
+import { parse as parsePath, resolve as resolvePath } from "node:path";
 import { PACKAGE_MANAGER } from "../const.ts";
 import deps from "../json/deps.json" with { type: "json" };
 import { PACKAGE_VERSION, readTemplate } from "../lib.ts";
@@ -13,16 +14,18 @@ const nextDescription: WebFrameworkDescription = {
   label: "Next.js",
   packageManagers: PACKAGE_MANAGER,
   defaultPort: 3000,
-  init: async ({ packageManager: pm, rt, skipInstall, skipSmokeTest }) => ({
+  init: async (
+    { packageManager: pm, rt, skipInstall, skipSmokeTest, testMode, dir },
+  ) => ({
     command: getNextInitCommand(pm, skipInstall),
-    cleanupFiles: pm === "deno" ? [] : ["eslint.config.mjs"],
+    cleanupFiles: Array.from(cleanupFiles(pm, testMode)),
     cleanupPackageJson: pm === "deno" ? {} : {
       scripts: ["lint"],
       devDependencies: ["eslint", "eslint-config-next"],
     },
     dependencies: {
       "@fedify/next": PACKAGE_VERSION,
-      ...(pm === "deno" ? defaultDenoDependencies : {}),
+      ...(pm === "deno" && defaultDenoDependencies),
     },
     devDependencies: {
       "@types/node": deps["npm:@types/node@20"],
@@ -31,14 +34,11 @@ const nextDescription: WebFrameworkDescription = {
     federationFile: "federation/index.ts",
     loggingFile: "logging.ts",
     testFile: "scripts/smoke.test.ts",
-    format: {
-      ignorePatterns: [".next/**"],
-    },
-    files: {
-      "instrumentation.ts": await readTemplate("next/instrumentation.ts"),
-      "middleware.ts": await readTemplate("next/middleware.ts"),
-    },
-    tasks: addTestTask(rt, skipSmokeTest)(getNodeBunDevToolTasks(pm)),
+    format: { ignorePatterns: [".next/**"] },
+    files: await getFiles(testMode, dir),
+    tasks: addTestTask(rt, skipSmokeTest)(
+      pm === "deno" ? DENO_TASKS : getNodeBunDevToolTasks(pm),
+    ),
     instruction: getInstruction(pm, 3000),
   }),
 };
@@ -56,14 +56,37 @@ const getNextInitCommand = (
   ...createNextAppCommand(pm),
   ".",
   "--yes",
-  ...(skipInstall ? ["--skip-install"] : []),
+  ...(pm === "deno" || skipInstall ? ["--skip-install"] : []),
 ];
 
 const createNextAppCommand = (pm: PackageManager): string[] =>
   pm === "deno"
-    ? ["deno", "-Ar", "npm:create-next-app@latest"]
+    ? ["deno", "run", "-Ar", "npm:create-next-app@latest"]
     : pm === "bun"
     ? ["bun", "create", "next-app"]
     : pm === "npm"
     ? ["npx", "create-next-app"]
     : [pm, "dlx", "create-next-app"];
+
+function* cleanupFiles(pm: PackageManager, testMode: boolean) {
+  if (pm !== "deno") yield "eslint.config.mjs";
+  if (testMode) yield "next.config.ts";
+}
+
+const getFiles = async (testMode: boolean, dir: string) => ({
+  "instrumentation.ts": await readTemplate("next/instrumentation.ts"),
+  "middleware.ts": await readTemplate("next/middleware.ts"),
+  ...(testMode && {
+    "next.config.ts": (await readTemplate("next/next.config.ts"))
+      .replace(
+        /\/\* root \*\//,
+        JSON.stringify(parsePath(resolvePath(dir)).root),
+      ),
+  }),
+});
+
+const DENO_TASKS = {
+  dev: "deno run -A npm:next dev",
+  build: "deno run -A npm:next build",
+  start: "deno run -A npm:next start",
+};

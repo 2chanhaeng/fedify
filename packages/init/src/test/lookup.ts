@@ -28,11 +28,8 @@ type LookupCasePattern = [
   MessageQueue | "*",
 ];
 const BANNED_LOOKUP_REASONS: Record<string, string> = {
-  "next,*,*,*": "Next.js doesn't support remote packages",
-  "solidstart,deno,*,*": "Error occurred while loading submodules in Deno",
-  "astro,deno,*,*": "Astro doesn't support remote packages in Deno",
-  "nuxt,deno,*,*": "Nuxt doesn't support remote packages in Deno",
-  "sveltekit,deno,*,*": "SvelteKit doesn't support remote packages in Deno",
+  // "wf,pm,kv,mq": "The reason why the combination can be tested."
+  // Use `*` for unrelated option.
 };
 const BANNED_LOOKUP_CASES: LookupCasePattern[] = Object.keys(
   BANNED_LOOKUP_REASONS,

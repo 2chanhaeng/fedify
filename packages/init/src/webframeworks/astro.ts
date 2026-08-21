@@ -107,13 +107,13 @@ const astroNodeBunDevToolTasks = {
   lint: "oxlint .",
 } as const;
 
-const astroDenoCommand = `deno run -A npm:astro@${deps["npm:astro"]}`;
+const ASTRO_DENO = `deno run -A astro`;
 
 const TASKS = {
   "deno": {
-    dev: `${astroDenoCommand} dev`,
-    build: `${astroDenoCommand} build`,
-    preview: `${astroDenoCommand} preview`,
+    dev: `${ASTRO_DENO} dev`,
+    build: `${ASTRO_DENO} build`,
+    preview: "deno run -A ./dist/server/entry.mjs",
   },
   "bun": {
     dev: "bunx --bun astro dev",

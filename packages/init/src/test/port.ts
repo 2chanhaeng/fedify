@@ -101,6 +101,7 @@ const ENTRY_FILES: Partial<Record<WebFramework, string>> = {
 };
 
 const WF_READ_PORT_FROM_ENV: Set<WebFramework> = new Set([
+  "next",
   "nuxt",
   "nitro",
   "solidstart",

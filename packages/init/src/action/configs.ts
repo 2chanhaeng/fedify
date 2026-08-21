@@ -48,7 +48,10 @@ export const loadDenoConfig = (data: InitCommandData) => ({
   data: {
     ...pick(["compilerOptions", "tasks"], data.initializer),
     ...getUnstable(data),
-    nodeModulesDir: "auto",
+    // Deno 2.9 manages linked workspace packages' node_modules directories.
+    // Keep them manual in test mode so Deno cases do not prune pnpm's links,
+    // while frameworks scaffolded with package.json can use `deno install`.
+    nodeModulesDir: data.testMode ? "manual" : "auto",
     imports: joinDepsReg("deno")(getDependencies(data)),
     lint: { plugins: ["jsr:@fedify/lint"] },
     ...(data.testMode && !data.dryRun ? { links: getLinks(data) } : {}),

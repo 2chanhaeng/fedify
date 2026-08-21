@@ -84,18 +84,9 @@ test("Astro init pins the Astro 7 scaffolder and dependencies", async () => {
         result.dependencies?.["@deno/astro-adapter"],
         `npm:@deno/astro-adapter@${deps["npm:@deno/astro-adapter"]}`,
       );
-      strictEqual(
-        tasks.dev,
-        `deno run -A npm:astro@${deps["npm:astro"]} dev`,
-      );
-      strictEqual(
-        tasks.build,
-        `deno run -A npm:astro@${deps["npm:astro"]} build`,
-      );
-      strictEqual(
-        tasks.preview,
-        `deno run -A npm:astro@${deps["npm:astro"]} preview`,
-      );
+      strictEqual(tasks.dev, "deno run -A astro dev");
+      strictEqual(tasks.build, "deno run -A astro build");
+      strictEqual(tasks.preview, "deno run -A ./dist/server/entry.mjs");
     }
   }
 });

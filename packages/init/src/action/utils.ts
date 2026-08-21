@@ -1,7 +1,14 @@
 import $ from "@david/dax";
 import { readFile, writeFile } from "node:fs/promises";
 import { join as joinPath } from "node:path";
-import type { InitCommandData } from "../types.ts";
+import type { InitCommandData, WebFramework } from "../types.ts";
+
+const DENO_BUNDLED_FRAMEWORKS: ReadonlySet<WebFramework> = new Set([
+  "astro",
+  "next",
+  "solidstart",
+  "sveltekit",
+]);
 
 /** Returns `true` if the current run is in dry-run mode. */
 export const isDry = ({ dryRun }: InitCommandData) => dryRun;
@@ -19,13 +26,27 @@ export const isDeno = (
   { packageManager }: Pick<InitCommandData, "packageManager">,
 ) => packageManager === "deno";
 
+/** Returns `true` when a framework bundler resolves Deno runtime imports. */
+export const usesBundlerWithDeno = (
+  { packageManager, webFramework }: Pick<
+    InitCommandData,
+    "packageManager" | "webFramework"
+  >,
+) => packageManager === "deno" && DENO_BUNDLED_FRAMEWORKS.has(webFramework);
+
 /**
  * Returns `true` when the `@std/dotenv` dependency should be included:
  * the project uses Deno and has at least one environment variable to load.
  */
 export const needsDenoDotenv = (
-  { packageManager, env }: Pick<InitCommandData, "packageManager" | "env">,
-) => packageManager === "deno" && Object.keys(env).length > 0;
+  { packageManager, webFramework, env }: Pick<
+    InitCommandData,
+    "packageManager" | "webFramework" | "env"
+  >,
+) =>
+  packageManager === "deno" &&
+  !usesBundlerWithDeno({ packageManager, webFramework }) &&
+  Object.keys(env).length > 0;
 
 /**
  * Returns a function that prepends the project directory to a
@@ -90,8 +111,13 @@ export function stringifyEnvs(object: Record<string, string>): string {
  * dependencies. Logs an error message if the installation fails.
  */
 export const installDependencies = async (data: InitCommandData) => {
-  const { packageManager, dir, testMode } = data;
-  if (packageManager !== "deno" || !testMode) {
+  const { packageManager, dir, testMode, webFramework } = data;
+  if (packageManager === "npm" && webFramework === "nuxt") {
+    // npm 10's Arborist crashes while resolving a fresh Nuxt dependency tree:
+    // https://github.com/npm/cli/issues/9787
+    return await $`${packageManager} install --legacy-peer-deps`.cwd(dir)
+      .spawn();
+  } else if (packageManager !== "deno" || !testMode) {
     return await $`${packageManager} install`.cwd(dir).spawn();
   }
 

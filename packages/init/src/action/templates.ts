@@ -123,7 +123,7 @@ export const getImports = (
       } from ${JSON.stringify(module)};`
     ),
     when(
-      () => needsDenoDotenv({ packageManager, env }),
+      () => needsDenoDotenv({ packageManager, webFramework, env }),
       concat(['import "@std/dotenv/load";']),
     ),
     when(

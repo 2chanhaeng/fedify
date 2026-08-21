@@ -1,7 +1,9 @@
+import { pipe } from "@fxts/core";
 import { PACKAGE_MANAGER } from "../const.ts";
 import deps from "../json/deps.json" with { type: "json" };
 import { PACKAGE_VERSION, readTemplate } from "../lib.ts";
-import type { WebFrameworkDescription } from "../types.ts";
+import type { PackageManager, WebFrameworkDescription } from "../types.ts";
+import { replace } from "../utils.ts";
 import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
 import { addTestTask, getInstruction, nodeBunDevToolTasks } from "./utils.ts";
 
@@ -10,7 +12,7 @@ const solidstartDescription: WebFrameworkDescription = {
   label: "SolidStart",
   packageManagers: PACKAGE_MANAGER,
   defaultPort: 3000,
-  init: async ({ packageManager: pm, rt, skipSmokeTest }) => ({
+  init: async ({ packageManager: pm, rt, skipSmokeTest, testMode }) => ({
     dependencies: getDependencies(pm),
     devDependencies: {
       ...defaultDevDependencies,
@@ -19,30 +21,10 @@ const solidstartDescription: WebFrameworkDescription = {
     },
     federationFile: "src/federation.ts",
     loggingFile: "src/logging.ts",
+    loggingTemplate: "solidstart/logging.ts",
     testFile: "scripts/smoke.test.ts",
-    format: {
-      ignorePatterns: [".solid/**", ".vinxi/**"],
-    },
-    files: {
-      "app.config.ts": (await readTemplate("solidstart/app.config.ts"))
-        .replace(
-          /\/\* preset \*\//,
-          pm === "deno" ? "deno-server" : "node-server",
-        ),
-      "src/app.tsx": await readTemplate("solidstart/src/app.tsx"),
-      "src/entry-client.tsx": await readTemplate(
-        "solidstart/src/entry-client.tsx",
-      ),
-      "src/entry-server.tsx": await readTemplate(
-        "solidstart/src/entry-server.tsx",
-      ),
-      "src/routes/index.tsx": await readTemplate(
-        "solidstart/src/routes/index.tsx",
-      ),
-      "src/middleware/index.ts": await readTemplate(
-        "solidstart/src/middleware/index.ts",
-      ),
-    },
+    format: { ignorePatterns: [".solid/**", ".vinxi/**"] },
+    files: await getFiles(pm, testMode),
     compilerOptions: pm === "deno" ? undefined : {
       target: "ESNext",
       module: "ESNext",
@@ -80,6 +62,45 @@ const getDependencies = (pm: string): Record<string, string> =>
       vinxi: deps["npm:vinxi"],
       "@fedify/solidstart": PACKAGE_VERSION,
     };
+
+const getFiles = async (pm: PackageManager, testMode: boolean) => ({
+  "app.config.ts": await pipe(
+    readTemplate("solidstart/app.config.ts"),
+    replace(/\/\* vite \*\//, getViteConfig(pm, testMode)),
+    replace(/\/\* preset \*\//, pm === "deno" ? "deno-server" : "node-server"),
+  ),
+  "src/app.tsx": await readTemplate("solidstart/src/app.tsx"),
+  "src/entry-client.tsx": await readTemplate(
+    "solidstart/src/entry-client.tsx",
+  ),
+  "src/entry-server.tsx": await readTemplate(
+    "solidstart/src/entry-server.tsx",
+  ),
+  "src/routes/index.tsx": await readTemplate(
+    "solidstart/src/routes/index.tsx",
+  ),
+  "src/middleware/index.ts": await readTemplate(
+    "solidstart/src/middleware/index.ts",
+  ),
+});
+
+const getViteConfig = (pm: PackageManager, testMode: boolean): string =>
+  pm === "deno"
+    ? `vite: { ssr: { noExternal: ["@solidjs/router"] } },`
+    : testMode
+    ? `vite: { ssr: { external: ${JSON.stringify(SOLIDSTART_EXTERNALS)} } },`
+    : "";
+
+const SOLIDSTART_EXTERNALS = [
+  "@fedify/amqp",
+  "@fedify/denokv",
+  "@fedify/fedify",
+  "@fedify/mysql",
+  "@fedify/postgres",
+  "@fedify/redis",
+  "@fedify/vocab",
+  "@logtape/logtape",
+] as const;
 
 const DENO_SOLIDSTART = Object.fromEntries([
   "client",

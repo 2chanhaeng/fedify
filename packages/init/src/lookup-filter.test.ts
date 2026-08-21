@@ -1,11 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { join } from "node:path";
 import { test } from "node:test";
-import {
-  isTestable,
-  matchesLookupCasePattern,
-  parseLookupCase,
-} from "./test/lookup.ts";
+import { matchesLookupCasePattern, parseLookupCase } from "./test/lookup.ts";
 
 test("parseLookupCase() parses the last four path segments", () => {
   assertEquals(
@@ -26,22 +22,5 @@ test("matchesLookupCasePattern() supports wildcards", () => {
       ["solidstart", "deno", "*", "*"],
     ),
     false,
-  );
-});
-
-test("isTestable() excludes banned lookup cases only", () => {
-  const dirs = [
-    join("/tmp", "hyd", "next", "pnpm", "postgres", "redis"),
-    join("/tmp", "hyd", "solidstart", "deno", "postgres", "redis"),
-    join("/tmp", "hyd", "solidstart", "npm", "postgres", "redis"),
-    join("/tmp", "hyd", "hono", "deno", "denokv", "denokv"),
-  ];
-
-  assertEquals(
-    dirs.filter(isTestable),
-    [
-      join("/tmp", "hyd", "solidstart", "npm", "postgres", "redis"),
-      join("/tmp", "hyd", "hono", "deno", "denokv", "denokv"),
-    ],
   );
 });

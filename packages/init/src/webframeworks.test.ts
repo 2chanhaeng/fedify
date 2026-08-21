@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { readTemplate } from "./lib.ts";
 import astroDescription from "./webframeworks/astro.ts";
 import webFrameworks from "./webframeworks/mod.ts";
 import nextDescription from "./webframeworks/next.ts";
@@ -73,6 +74,32 @@ test("Next.js template loads LogTape through instrumentation", async () => {
   ok(instrumentation.includes('await import("./logging")'));
 });
 
+test("Next.js Deno template supports test-mode workspace packages", async () => {
+  const initializer = await nextDescription.init({
+    projectName: "test-app",
+    dir: ".",
+    command: "init",
+    packageManager: "deno",
+    rt: "deno",
+    kvStore: "in-memory",
+    messageQueue: "in-process",
+    webFramework: "next",
+    testMode: true,
+    dryRun: false,
+    allowNonEmpty: false,
+    skipInstall: false,
+    skipSmokeTest: false,
+  });
+
+  deepEqual(initializer.command?.slice(0, 3), ["deno", "run", "-Ar"]);
+  ok(initializer.command?.includes("--skip-install"));
+  ok(initializer.cleanupFiles?.includes("next.config.ts"));
+  equal(initializer.tasks?.dev, "deno run -A npm:next dev");
+  const config = initializer.files?.["next.config.ts"];
+  ok(config);
+  ok(config.includes("turbopack"));
+});
+
 test("Astro template loads LogTape through middleware", async () => {
   const { files } = await astroDescription.init({
     projectName: "test-app",
@@ -97,7 +124,7 @@ test("Astro template loads LogTape through middleware", async () => {
 });
 
 test("SolidStart template loads LogTape through middleware", async () => {
-  const { files } = await solidstartDescription.init({
+  const { files, loggingTemplate } = await solidstartDescription.init({
     projectName: "test-app",
     dir: ".",
     command: "init",
@@ -117,6 +144,54 @@ test("SolidStart template loads LogTape through middleware", async () => {
   const middleware = files["src/middleware/index.ts"];
   ok(middleware);
   ok(middleware.includes('import "../logging";'));
+  equal(loggingTemplate, "solidstart/logging.ts");
+  const logging = await readTemplate(loggingTemplate);
+  ok(logging.includes("reset: true"));
+  ok(logging.includes("configureSync({"));
+  equal(logging.includes("await configure({"), false);
+});
+
+test("SolidStart template configures SSR dependencies by runtime", async () => {
+  for (const packageManager of ["deno", "npm", "pnpm", "bun"] as const) {
+    for (const testMode of [false, true]) {
+      const { files } = await solidstartDescription.init({
+        projectName: "test-app",
+        dir: ".",
+        command: "init",
+        packageManager,
+        rt: packageManager === "deno"
+          ? "deno"
+          : packageManager === "bun"
+          ? "bun"
+          : "node",
+        kvStore: "in-memory",
+        messageQueue: "in-process",
+        webFramework: "solidstart",
+        testMode,
+        dryRun: true,
+        allowNonEmpty: false,
+        skipInstall: false,
+        skipSmokeTest: false,
+      });
+
+      ok(files);
+      const config = files["app.config.ts"];
+      ok(config);
+      equal(
+        config.includes('noExternal: ["@solidjs/router"]'),
+        packageManager === "deno",
+      );
+      equal(
+        config.includes('external: ["@fedify/amqp"'),
+        packageManager !== "deno" && testMode,
+      );
+      equal(
+        config.includes('"@logtape/logtape"]'),
+        packageManager !== "deno" && testMode,
+      );
+      equal(config.includes('"@fedify/solidstart"'), false);
+    }
+  }
 });
 
 test("Node.js and Bun templates use Oxfmt and Oxlint", async () => {

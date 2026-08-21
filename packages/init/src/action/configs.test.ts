@@ -13,6 +13,8 @@ import bareBonesDescription from "../webframeworks/bare-bones.ts";
 import nextDescription from "../webframeworks/next.ts";
 import nitroDescription from "../webframeworks/nitro.ts";
 import nuxtDescription from "../webframeworks/nuxt.ts";
+import solidstartDescription from "../webframeworks/solidstart.ts";
+import sveltekitDescription from "../webframeworks/sveltekit.ts";
 import { cleanupScaffoldedFiles } from "./cleanup.ts";
 import { loadDenoConfig } from "./configs.ts";
 import { patchFiles } from "./patch.ts";
@@ -115,6 +117,21 @@ test("loadDenoConfig keeps unstable.temporal before Deno 2.7.0", () => {
   }
 });
 
+test("loadDenoConfig uses manual node_modules management in test mode", () => {
+  const productionData = createInitData();
+  const testData = {
+    ...createInitData(),
+    testMode: true,
+    dir: process.cwd(),
+  };
+
+  assert.strictEqual(
+    loadDenoConfig(productionData).data.nodeModulesDir,
+    "auto",
+  );
+  assert.strictEqual(loadDenoConfig(testData).data.nodeModulesDir, "manual");
+});
+
 test("loadDenoConfig uses npm for Astro Fedify adapters", async () => {
   const initializer = await astroDescription.init({
     command: "init",
@@ -153,6 +170,59 @@ test("loadDenoConfig uses npm for Astro Fedify adapters", async () => {
     config.imports["@fedify/lint"],
     `jsr:@fedify/lint@${PACKAGE_VERSION}`,
   );
+});
+
+test("loadDenoConfig uses npm for framework-bundled Deno dependencies", async () => {
+  const cases = [
+    ["astro", astroDescription],
+    ["next", nextDescription],
+    ["solidstart", solidstartDescription],
+    ["sveltekit", sveltekitDescription],
+  ] as const;
+
+  for (const [webFramework, description] of cases) {
+    const initializer = await description.init({
+      command: "init",
+      projectName: "example",
+      packageManager: "deno",
+      rt: "deno",
+      webFramework,
+      kvStore: "in-memory",
+      messageQueue: "in-process",
+      dryRun: false,
+      allowNonEmpty: false,
+      skipInstall: false,
+      skipSmokeTest: false,
+      testMode: false,
+      dir: "/tmp/example",
+    });
+    const config = loadDenoConfig({
+      ...createInitData(),
+      webFramework,
+      kvStore: "in-memory",
+      messageQueue: "in-process",
+      initializer,
+      kv: kvStores["in-memory"],
+      mq: messageQueues["in-process"],
+      env: { HOST: "127.0.0.1" },
+    }).data;
+
+    for (
+      const dependency of [
+        "@fedify/fedify",
+        "@fedify/vocab",
+        `@fedify/${webFramework}`,
+        "@logtape/logtape",
+      ]
+    ) {
+      assert.match(config.imports[dependency], /^npm:/);
+    }
+    assert.strictEqual(
+      config.imports["@fedify/lint"],
+      `jsr:@fedify/lint@${PACKAGE_VERSION}`,
+    );
+    assert.strictEqual(config.imports["@std/dotenv"], undefined);
+  }
 });
 
 test("patchFiles creates Oxfmt and Oxlint configs for npm projects", async () => {

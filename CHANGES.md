@@ -179,14 +179,22 @@ To be released.
     the app, waits for it to become ready, and checks that it resolves a local
     actor, giving projects a standard smoke test to run right after scaffolding
     and whenever the app changes afterwards.  Pass `--skip-smoke-test` to omit
-    the smoke-test script, task, and dependencies used only by the test.
-    [[#898], [#994], [#990] by Jang Hanarae\]
- -  Added runtime version verification to `fedify init`. It checks that the
+    the smoke-test script and task.  [[#898], [#994], [#990] by Jang Hanarae\]
+ -  Added runtime version verification to `fedify init`.  It checks that the
     selected Deno, Bun, or Node.js meets Fedify's minimum version, or a higher
-    version required by a framework (such as Astro's Node.js 22.12), before
-    generating a project. A missing, malformed, or unsupported runtime now
-    produces a clear error in non-interactive mode and disables the affected
-    package managers in interactive mode.  [[#964], [#981] by Lee Jeongmin\]
+    version required by a framework, before generating a project.  A missing,
+    malformed, or unsupported runtime now produces a clear error in
+    non-interactive mode and disables the affected package managers in
+    interactive mode.  [[#964], [#981] by Lee Jeongmin\]
+ -  Changed the Node.js projects scaffolded by `fedify init` to run TypeScript
+    through Node.js's built-in type stripping and to load *.env* with
+    `node --env-file` instead of depending on `tsx` and `@dotenvx/dotenvx`.
+    The generated `dev`, `prod`, and `test` tasks no longer pull in either
+    package, so `fedify init` now requires Node.js 22.18.0 or later.  Astro
+    and SvelteKit projects read environment variables through
+    `import.meta.env` and `$env/dynamic/private`, which their dev servers
+    populate from *.env*, and Hono projects now scaffold *src/app.ts* instead
+    of *src/app.tsx*.
  -  Fixed `fedify init`'s hydration test validation to run `format` before
     `format:check`, which previously caused the entire test suite to fail when
     the package manager is `npm` or `pnpm`:

@@ -69,7 +69,7 @@ const getNuxtInitCommand = (pm: PackageManager): string[] =>
   pm === "bun"
     ? ["bunx", "nuxi"]
     : pm === "deno"
-    ? ["deno", "-A", "npm:nuxi@latest"]
+    ? ["deno", "run", "-A", "npm:nuxi@latest"]
     : pm === "npm"
     ? ["npx", "nuxi"]
     : [pm, "dlx", "nuxi"];

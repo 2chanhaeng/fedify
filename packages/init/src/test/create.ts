@@ -45,16 +45,21 @@ async (
     .spawn();
   await saveOutputs(testDir, result);
   if (result.code === 0) {
-    if (
-      !dry &&
-      (!(await validateDevToolScripts(testDir, options)) ||
-        !(await validateFrameworkBuild(testDir, options)))
-    ) {
-      printMessage`  Fail: ${vals}`;
-      printMessage`    Check out these files for more details: \
+    if (!dry) {
+      const [, packageManager] = options;
+      if (packageManager === "deno") {
+        await linkDenoWorkspacePackages(testDir);
+      }
+      if (
+        !(await validateDevToolScripts(testDir, options)) ||
+        !(await validateFrameworkBuild(testDir, options))
+      ) {
+        printMessage`  Fail: ${vals}`;
+        printMessage`    Check out these files for more details: \
 ${join(testDir, "out.txt")} and \
 ${join(testDir, "err.txt")}\n`;
-      return "";
+        return "";
+      }
     }
     printMessage`  Pass: ${vals}`;
     return testDir;
@@ -178,7 +183,6 @@ async function validateFrameworkBuild(
     MessageQueue,
   ];
   if (webFramework !== "astro") return true;
-  if (packageManager === "deno") await linkDenoWorkspacePackages(dir);
   const result = await $`${getBuildCommand(packageManager)}`
     .cwd(dir)
     .stdin("null")

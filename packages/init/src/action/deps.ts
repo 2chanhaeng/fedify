@@ -13,7 +13,7 @@ import { PACKAGE_VERSION } from "../lib.ts";
 import type { InitCommandData, PackageManager } from "../types.ts";
 import { merge, replace } from "../utils.ts";
 import { getPackagesPath } from "./const.ts";
-import { isDeno, needsDenoDotenv } from "./utils.ts";
+import { isDeno, needsDenoDotenv, usesBundlerWithDeno } from "./utils.ts";
 
 type Deps = Record<string, string>;
 
@@ -42,15 +42,15 @@ export const getDependencies = (
       "@fedify/fedify": PACKAGE_VERSION,
       "@fedify/vocab": PACKAGE_VERSION,
       "@logtape/logtape": deps["@logtape/logtape"],
-      ...(needsDenoDotenv({ packageManager, env }) &&
+      ...(needsDenoDotenv({ packageManager, env, webFramework }) &&
         { "@std/dotenv": deps["@std/dotenv"] }),
     },
     merge(initializer.dependencies),
     merge(kv.dependencies),
     merge(mq.dependencies),
     when(
-      always(packageManager === "deno" && webFramework === "astro"),
-      useNpmForFedifyPackages,
+      always(usesBundlerWithDeno({ packageManager, webFramework })),
+      useNpmForFrameworkLoadedPackages,
     ),
     when(
       always(testMode),
@@ -59,13 +59,14 @@ export const getDependencies = (
     normalizePackageNames(packageManager),
   );
 
-const useNpmForFedifyPackages = (deps: Deps): Deps =>
+const useNpmForFrameworkLoadedPackages = (deps: Deps): Deps =>
   pipe(
     deps,
     entries,
     map(([name, version]) =>
-      name.startsWith("@fedify/") && name !== "@fedify/lint" &&
-        !version.startsWith("npm:")
+      ((name.startsWith("@fedify/") && name !== "@fedify/lint") ||
+          name === "@logtape/logtape") &&
+        !version.startsWith("npm:") && !version.startsWith("jsr:")
         ? [name, `npm:${name}@${version}`] as const
         : [name, version] as const
     ),
