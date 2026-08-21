@@ -112,6 +112,8 @@ test("patchFiles writes the smoke-test script", async () => {
       "utf8",
     );
     assert.match(testScript, /\["npm", "run", "dev"\]/);
+    assert.match(testScript, /ASTRO_DEV_BACKGROUND: "0"/);
+    assert.match(testScript, /\["localhost", "127\.0\.0\.1", "\[::1\]"\]/);
   });
 });
 

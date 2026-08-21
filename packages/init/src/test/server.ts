@@ -3,10 +3,13 @@ import { createWriteStream, type WriteStream } from "node:fs";
 import { join as joinPath } from "node:path";
 import process from "node:process";
 import { Readable } from "node:stream";
+import { setTimeout as delay } from "node:timers/promises";
 import { printErrorMessage } from "../utils.ts";
 import { ensurePortReleased, killProcessOnPort } from "./port.ts";
 
-export const STARTUP_TIMEOUT = 10000; // 30 seconds
+export const STARTUP_TIMEOUT = 10_000;
+const REQUEST_TIMEOUT = 1_000;
+const RETRY_DELAY = 500;
 
 /**
  * Wait for the server to be ready by checking if it responds to requests.
@@ -15,22 +18,39 @@ export async function waitForServer(
   url: string,
   timeout: number = STARTUP_TIMEOUT,
 ): Promise<boolean> {
-  const startTime = Date.now();
+  const deadline = AbortSignal.timeout(timeout);
+  const urls = getLoopbackUrls(url);
 
-  while (Date.now() - startTime < timeout) {
+  while (!deadline.aborted) {
+    const controller = new AbortController();
+    const signal = AbortSignal.any([
+      deadline,
+      controller.signal,
+      AbortSignal.timeout(REQUEST_TIMEOUT),
+    ]);
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(1000) });
-      const ok = response.ok;
-      await response.body?.cancel();
-      if (ok) {
-        return true;
-      }
+      await Promise.any(
+        urls.map(async (target) => {
+          const response = await fetch(target, {
+            signal,
+          });
+          const ok = response.ok;
+          await response.body?.cancel();
+          if (!ok) throw new Error(`Server returned status ${response.status}`);
+        }),
+      );
+      return true;
     } catch {
-      // Server not ready yet, continue waiting
+      // Server not ready on any loopback address yet
+    } finally {
+      controller.abort();
     }
 
-    // Wait 500ms before next attempt
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      await delay(RETRY_DELAY, undefined, { signal: deadline });
+    } catch {
+      return false;
+    }
   }
 
   return false;
@@ -49,7 +69,11 @@ export async function serverClosure<T>(
   const devCommand = cmd.split(" ");
   const child = spawn(devCommand[0], devCommand.slice(1), {
     cwd: dir,
-    env: { ...process.env, PORT: String(defaultPort) },
+    env: {
+      ...process.env,
+      ASTRO_DEV_BACKGROUND: "0",
+      PORT: String(defaultPort),
+    },
     stdio: ["ignore", "pipe", "pipe"],
     detached: true, // creates a new process group so we can kill the tree
   });
@@ -86,7 +110,7 @@ export async function serverClosure<T>(
     });
     return await callback(port);
   } finally {
-    // Kill the entire process group (tsx watch + all its children)
+    // Kill the entire process group
     try {
       if (child.pid != null) {
         process.kill(-child.pid, "SIGKILL");
@@ -116,6 +140,17 @@ export async function serverClosure<T>(
     // Ensure port is released before next test
     await ensurePortReleased(port);
   }
+}
+
+function getLoopbackUrls(url: string): string[] {
+  const parsed = new URL(url);
+  if (parsed.hostname !== "localhost") return [url];
+
+  return ["localhost", "127.0.0.1", "[::1]"].map((hostname) => {
+    const candidate = new URL(parsed);
+    candidate.hostname = hostname;
+    return candidate.href;
+  });
 }
 
 function determinePort(

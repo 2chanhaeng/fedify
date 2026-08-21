@@ -2,15 +2,20 @@ import { getDocumentLoader } from "@fedify/fedify";
 import { type Actor, isActor, lookupObject } from "@fedify/vocab";
 import { spawn, spawnSync } from "node:child_process";
 import type { Readable } from "node:stream";
+import { setTimeout as delay } from "node:timers/promises";
 
 const DEV_COMMAND: string[] = /* dev command */;
 const HANDLE = "john";
 const STARTUP_TIMEOUT = 15_000;
+const REQUEST_TIMEOUT = 1_000;
+const RETRY_DELAY = 500;
 const IS_WINDOWS = process.platform === "win32";
+const LOOPBACK_HOSTS = ["localhost", "127.0.0.1", "[::1]"] as const;
 
 async function main(): Promise<void> {
   const [command, ...args] = DEV_COMMAND;
   const server = spawn(command, args, {
+    env: { ...process.env, ASTRO_DEV_BACKGROUND: "0" },
     stdio: ["ignore", "pipe", "pipe"],
     shell: IS_WINDOWS,
     windowsHide: true,
@@ -37,9 +42,8 @@ async function main(): Promise<void> {
 
   try {
     const port = await determinePort(server);
-    const target = `http://localhost:${port}/users/${HANDLE}`;
-    await waitForServer(target);
-    console.log(`Server is up at http://localhost:${port}.`);
+    const target = await waitForServer(port);
+    console.log(`Server is up at ${new URL(target).origin}.`);
     const actor = await checkActor(target);
     console.log(actor);
     console.log(`Smoke test passed: ${target} resolved to an actor.`);
@@ -109,23 +113,43 @@ function determinePort(server: ReturnType<typeof spawn>): Promise<number> {
   });
 }
 
-async function waitForServer(url: string): Promise<void> {
-  const startTime = Date.now();
+async function waitForServer(port: number): Promise<string> {
+  const deadline = AbortSignal.timeout(STARTUP_TIMEOUT);
   let lastStatus: number | undefined;
+  const targets = LOOPBACK_HOSTS.map(
+    (host) => `http://${host}:${port}/users/${HANDLE}`,
+  );
 
-  while (Date.now() - startTime < STARTUP_TIMEOUT) {
+  while (!deadline.aborted) {
+    const controller = new AbortController();
+    const signal = AbortSignal.any([
+      deadline,
+      controller.signal,
+      AbortSignal.timeout(REQUEST_TIMEOUT),
+    ]);
     try {
-      const response = await fetch(url, {
-        headers: { Accept: "application/activity+json" },
-        signal: AbortSignal.timeout(1000),
-      });
-      await response.body?.cancel();
-      if (response.ok) return;
-      lastStatus = response.status;
+      return await Promise.any(
+        targets.map(async (target) => {
+          const response = await fetch(target, {
+            headers: { Accept: "application/activity+json" },
+            signal,
+          });
+          await response.body?.cancel();
+          if (response.ok) return target;
+          lastStatus = response.status;
+          throw new Error(`Server returned status ${response.status}`);
+        }),
+      );
     } catch {
-      // Server not ready yet, continue waiting
+      // Server not ready on any loopback address yet
+    } finally {
+      controller.abort();
     }
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      await delay(RETRY_DELAY, undefined, { signal: deadline });
+    } catch {
+      break;
+    }
   }
   throw new Error(
     `The server did not become ready within ${STARTUP_TIMEOUT}ms.` +
