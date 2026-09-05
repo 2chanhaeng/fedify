@@ -4,7 +4,7 @@ import setData from "./set.ts";
 
 test("setData resolves the runtime before initializing the framework", async () => {
   const cases = [
-    ["deno", "deno", "deno test"],
+    ["deno", "deno", "deno test --allow-run --allow-env --allow-net"],
     ["bun", "bun", "bun test --timeout 15000"],
     ["npm", "node", "node --test"],
     ["pnpm", "node", "node --test"],

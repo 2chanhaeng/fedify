@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
+import deps from "../json/deps.json" with { type: "json" };
 import { kvStores, messageQueues, PACKAGE_VERSION } from "../lib.ts";
 import type { InitCommandData } from "../types.ts";
 import astroDescription from "../webframeworks/astro.ts";
@@ -165,6 +166,18 @@ test("loadDenoConfig uses npm for Astro Fedify adapters", async () => {
   assert.strictEqual(
     config.imports["@fedify/amqp"],
     `npm:@fedify/amqp@${PACKAGE_VERSION}`,
+  );
+  assert.strictEqual(
+    config.imports["@fedify/astro"],
+    `npm:@fedify/astro@${PACKAGE_VERSION}`,
+  );
+  assert.strictEqual(
+    config.imports["@fedify/fedify"],
+    `npm:@fedify/fedify@${PACKAGE_VERSION}`,
+  );
+  assert.strictEqual(
+    config.imports["@logtape/logtape"],
+    `npm:@logtape/logtape@${deps["@logtape/logtape"]}`,
   );
   assert.strictEqual(
     config.imports["@fedify/lint"],

@@ -76,10 +76,7 @@ test("Astro init pins the Astro 7 scaffolder and dependencies", async () => {
     );
     if (packageManager === "deno") {
       const tasks = result.tasks as Record<string, string>;
-      strictEqual(
-        result.dependencies?.["@fedify/astro"],
-        `npm:@fedify/astro@${PACKAGE_VERSION}`,
-      );
+      strictEqual(result.dependencies?.["@fedify/astro"], PACKAGE_VERSION);
       strictEqual(
         result.dependencies?.["@deno/astro-adapter"],
         `npm:@deno/astro-adapter@${deps["npm:@deno/astro-adapter"]}`,

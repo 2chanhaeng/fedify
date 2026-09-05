@@ -1,6 +1,7 @@
 import { getDocumentLoader } from "@fedify/fedify";
 import { type Actor, isActor, lookupObject } from "@fedify/vocab";
 import { spawn, spawnSync } from "node:child_process";
+import process from "node:process";
 import type { Readable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
 
@@ -9,54 +10,71 @@ const HANDLE = "john";
 const STARTUP_TIMEOUT = 15_000;
 const REQUEST_TIMEOUT = 1_000;
 const RETRY_DELAY = 500;
-const IS_WINDOWS = process.platform === "win32";
+const IS_WINDOWS = Deno.build.os === "windows";
 const LOOPBACK_HOSTS = ["localhost", "127.0.0.1", "[::1]"] as const;
 
-async function main(): Promise<void> {
-  const [command, ...args] = DEV_COMMAND;
-  const server = spawn(command, args, {
-    env: { ...process.env, ASTRO_DEV_BACKGROUND: "0" },
-    stdio: ["ignore", "pipe", "pipe"],
-    shell: IS_WINDOWS,
-    windowsHide: true,
-    detached: !IS_WINDOWS,
-  });
-  server.on("error", () => {});
-
-  const exitOnSignal = () => {
-    stopServer(server);
-    process.exit(1);
-  };
-  process.once("SIGINT", exitOnSignal);
-  process.once("SIGTERM", exitOnSignal);
-
-  let output = "";
-  const collectOutput = (stream: Readable | null) => {
-    const decoder = new TextDecoder();
-    stream?.on("data", (chunk: Buffer) => {
-      output += decoder.decode(chunk, { stream: true });
+// The dev server keeps child processes and sockets open until it is killed,
+// so the test cleans them up itself instead of relying on Deno's sanitizers.
+Deno.test({
+  name: "smoke test",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    const [command, ...args] = DEV_COMMAND;
+    const server = spawn(command, args, {
+      env: { ...process.env, ASTRO_DEV_BACKGROUND: "0" },
+      stdio: ["ignore", "pipe", "pipe"],
+      shell: IS_WINDOWS,
+      windowsHide: true,
+      detached: !IS_WINDOWS,
     });
-  };
-  collectOutput(server.stdout);
-  collectOutput(server.stderr);
+    const spawnFailure = new Promise<never>((_, reject) => {
+      server.once("error", (error) =>
+        reject(new Error(`Failed to start the dev server: ${error.message}`)),
+      );
+    });
 
-  try {
-    const port = await determinePort(server);
-    const target = await waitForServer(port);
-    console.log(`Server is up at ${new URL(target).origin}.`);
-    const actor = await checkActor(target);
-    console.log(actor);
-    console.log(`Smoke test passed: ${target} resolved to an actor.`);
-  } catch (error) {
-    console.error("Smoke test failed:", error instanceof Error ? error.message : error);
-    if (output.trim() !== "") {
-      console.error(`\nDev server output:\n${output}`);
+    // Deno does not run `finally` when the test process is killed by a signal,
+    // so stop the dev server explicitly instead of leaving it on the port.
+    const exitOnSignal = () => {
+      stopServer(server);
+      Deno.exit(1);
+    };
+    const signals: Deno.Signal[] = IS_WINDOWS ? ["SIGINT"] : ["SIGINT", "SIGTERM"];
+    for (const signal of signals) Deno.addSignalListener(signal, exitOnSignal);
+
+    let output = "";
+    const collectOutput = (stream: Readable | null) => {
+      const decoder = new TextDecoder();
+      stream?.on("data", (chunk: Uint8Array) => {
+        output += decoder.decode(chunk, { stream: true });
+      });
+    };
+    collectOutput(server.stdout);
+    collectOutput(server.stderr);
+
+    try {
+      const port = await Promise.race([determinePort(server), spawnFailure]);
+      const target = await waitForServer(port);
+      console.log(`Server is up at ${new URL(target).origin}.`);
+      const actor = await checkActor(target);
+      console.log(actor);
+      console.log(`Smoke test passed: ${target} resolved to an actor.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        output.trim() === ""
+          ? message
+          : `${message}\n\nDev server output:\n${output}`,
+      );
+    } finally {
+      for (const signal of signals) {
+        Deno.removeSignalListener(signal, exitOnSignal);
+      }
+      stopServer(server);
     }
-    process.exitCode = 1;
-  } finally {
-    stopServer(server);
-  }
-}
+  },
+});
 
 function stripEscape(text: string): string {
   return text.replace(new RegExp("\\u001B\\[[0-9;]*[A-Za-z]", "g"), "");
@@ -94,7 +112,7 @@ function determinePort(server: ReturnType<typeof spawn>): Promise<number> {
     const scan = (stream: Readable | null) => {
       const decoder = new TextDecoder();
       let text = "";
-      stream?.on("data", (chunk: Buffer) => {
+      stream?.on("data", (chunk: Uint8Array) => {
         text += decoder.decode(chunk, { stream: true });
         const port = findPort(stripEscape(text));
         if (port != null) {
@@ -190,5 +208,3 @@ function stopServer(server: ReturnType<typeof spawn>): void {
     // Process already exited.
   }
 }
-
-await main();

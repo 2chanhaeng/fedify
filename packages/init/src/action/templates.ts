@@ -71,19 +71,23 @@ export const loadLogging = async (
 /**
  * Loads the smoke-test script content for the initializer.
  *
- * Every framework shares the same *defaults/smoke.test.ts* template, so unlike
- * {@link loadLogging} there is no per-framework template override.  The
- * template spawns the project's own dev server, so it needs the dev command
- * for the chosen package manager baked in at generation time.
+ * The template is chosen by runtime rather than by framework: Deno projects
+ * get *defaults/smoke.test/deno.ts*, which registers a `Deno.test()` so that
+ * `deno test` reports failures, while Node.js and Bun projects get
+ * *defaults/smoke.test/node.ts*, whose `process.exitCode` both runners
+ * propagate.  The template spawns the project's own dev server, so it needs
+ * the dev command for the chosen package manager baked in at generation time.
  *
- * @param param0 - {@link InitCommandData} containing `packageManager`
+ * @param param0 - {@link InitCommandData} containing `packageManager` and `rt`
  * @returns The complete smoke-test script content as a string
  */
 export const loadTest = async (
-  { packageManager }: InitCommandData,
+  { packageManager, rt }: InitCommandData,
 ) =>
   pipe(
-    await readTemplate("defaults/smoke.test.ts"),
+    await readTemplate(
+      `defaults/smoke.test/${rt === "deno" ? "deno" : "node"}.ts`,
+    ),
     replace(
       /\/\* dev command \*\//,
       JSON.stringify(getDevCommand(packageManager).split(" ")).replaceAll(

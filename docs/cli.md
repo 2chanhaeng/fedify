@@ -241,11 +241,12 @@ The above command will start the interactive prompt to initialize a new Fedify
 project.  It will ask you a few questions to set up the project:
 
  -  Web framework: Bare-bones, [Hono], [Elysia], [Express], [Nitro], [Next.js],
-    or [Astro]
+    [Astro], [Nuxt], [SolidStart], or [SvelteKit]
  -  Package manager: [Deno], [Bun], [npm], [pnpm], or [Yarn]
- -  Message queue: In-Process, [Redis], [PostgreSQL], [AMQP] (e.g., [RabbitMQ]),
-    or [Deno KV] (if Deno)
- -  Key–value store: In-Memory, [Redis], [PostgreSQL], or [Deno KV] (if Deno)
+ -  Message queue: In-Process, [Redis], [PostgreSQL], [MySQL]/[MariaDB],
+    [AMQP] (e.g., [RabbitMQ]), or [Deno KV] (if Deno)
+ -  Key–value store: In-Memory, [Redis], [PostgreSQL], [MySQL]/[MariaDB], or
+    [Deno KV] (if Deno)
 
 > [!TIP]
 > Projects created with `fedify init` automatically include [`@fedify/lint`]
@@ -269,11 +270,16 @@ interactive prompts:
 [Nitro]: https://nitro.unjs.io/
 [Next.js]: https://nextjs.org/
 [Astro]: https://astro.build/
+[Nuxt]: https://nuxt.com/
+[SolidStart]: https://start.solidjs.com/
+[SvelteKit]: https://svelte.dev/
 [npm]: https://www.npmjs.com/
 [pnpm]: https://pnpm.io/
 [Yarn]: https://yarnpkg.com/
 [Redis]: https://redis.io/
 [PostgreSQL]: https://www.postgresql.org/
+[MySQL]: https://www.mysql.com/
+[MariaDB]: https://mariadb.org/
 [AMQP]: https://www.amqp.org/
 [RabbitMQ]: https://www.rabbitmq.com/
 [Deno KV]: https://deno.com/kv

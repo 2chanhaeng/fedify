@@ -1,3 +1,4 @@
+import $ from "@david/dax";
 import { strictEqual } from "node:assert/strict";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -9,7 +10,6 @@ import {
   runtimes,
   verifyRuntimeVersion,
 } from "./lib.ts";
-import { runSubCommand } from "./utils.ts";
 
 test("isDirectoryEmpty allows an unborn Git repository", async () => {
   await withTempDir(async (dir) => {
@@ -209,7 +209,7 @@ async function createUnbornGitRepository(dir: string): Promise<void> {
 
 async function isGitAvailable(): Promise<boolean> {
   try {
-    await runSubCommand(["git", "--version"], {});
+    await $`git --version`.quiet().spawn();
     return true;
   } catch {
     return false;
@@ -217,7 +217,7 @@ async function isGitAvailable(): Promise<boolean> {
 }
 
 async function runGit(dir: string, args: string[]): Promise<void> {
-  await runSubCommand(["git", "-C", dir, ...args], {});
+  await $`git -C ${dir} ${args}`.quiet().spawn();
 }
 
 async function withTempDir(

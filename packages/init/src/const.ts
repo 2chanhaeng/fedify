@@ -1,3 +1,4 @@
+import db from "./json/db-to-check.json" with { type: "json" };
 import kv from "./json/kv.json" with { type: "json" };
 import mq from "./json/mq.json" with { type: "json" };
 import rt from "./json/rt.json" with { type: "json" };
@@ -27,7 +28,8 @@ export const KV_STORE = Object.keys(kv) as readonly (keyof typeof kv)[];
 /** All supported runtime identifiers. */
 export const RUNTIME = Object.keys(rt) as readonly (keyof typeof rt)[];
 /**
- * External database services that need to be running for integration tests.
- * Used by the test suite to check service availability before running tests.
+ * External database services that need to be running for integration tests,
+ * derived from *json/db-to-check.json*.  Used by the test suite to check
+ * service availability before running tests.
  */
-export const DB_TO_CHECK = ["redis", "postgres", "mysql", "amqp"] as const;
+export const DB_TO_CHECK = Object.keys(db) as readonly (keyof typeof db)[];

@@ -28,8 +28,10 @@ The initializer supports the following project configurations:
  -  **Web frameworks**: Bare-bones, [Astro], [Elysia], [Express], [Hono],
     [Next.js], [Nitro], [Nuxt], [SolidStart], [SvelteKit]
  -  **Package managers**: Deno, pnpm, Bun, Yarn, npm
- -  **Key-value stores**: In-Memory, Deno KV, Redis, PostgreSQL
- -  **Message queues**: In-Process, Deno KV, Redis, PostgreSQL, AMQP
+ -  **Key-value stores**: In-Memory, Deno KV, Redis, PostgreSQL,
+    MySQL/MariaDB
+ -  **Message queues**: In-Process, Deno KV, Redis, PostgreSQL,
+    MySQL/MariaDB, AMQP
 
 [Astro]: https://astro.build/
 [Elysia]: https://elysiajs.com/
@@ -61,9 +63,11 @@ The package exports the following:
 
  -  `runInit`: The main initialization action handler.
  -  `initCommand`: The CLI command definition for `init`.
+ -  `initOptions`: The option schema of `init`, for embedding it in another
+    command parser.
 
 ~~~~ typescript
-import { initCommand, runInit } from "@fedify/init";
+import { initCommand, initOptions, runInit } from "@fedify/init";
 ~~~~
 
 
@@ -85,7 +89,7 @@ mise run test:init
 You can also filter specific options to test a subset of combinations:
 
 ~~~~ sh
-mise run test:init -w hono -p deno
+mise run test:init -- -w hono -p deno
 ~~~~
 
 Use `--no-dry-run` to test with actual file creation and dependency

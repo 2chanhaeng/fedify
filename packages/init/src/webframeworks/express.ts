@@ -2,7 +2,11 @@ import { PACKAGE_MANAGER } from "../const.ts";
 import deps from "../json/deps.json" with { type: "json" };
 import { PACKAGE_VERSION, readTemplate } from "../lib.ts";
 import type { WebFrameworkDescription } from "../types.ts";
-import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
+import {
+  defaultDenoDependencies,
+  defaultDevDependencies,
+  nodeCompilerOptions,
+} from "./const.ts";
 import { addTestTask, getInstruction, nodeBunDevToolTasks } from "./utils.ts";
 
 const expressDescription: WebFrameworkDescription = {
@@ -28,16 +32,7 @@ const expressDescription: WebFrameworkDescription = {
         .replace(/\/\* logger \*\//, projectName),
       "src/index.ts": await readTemplate("express/index.ts"),
     },
-    compilerOptions: pm === "deno" ? undefined : {
-      "lib": ["ESNext", "DOM"],
-      "target": "ESNext",
-      "module": "NodeNext",
-      "moduleResolution": "NodeNext",
-      "allowImportingTsExtensions": true,
-      "verbatimModuleSyntax": true,
-      "noEmit": true,
-      "strict": true,
-    },
+    compilerOptions: pm === "deno" ? undefined : nodeCompilerOptions,
     tasks: addTestTask(rt, skipSmokeTest)(TASKS[rt]),
     instruction: getInstruction(pm, 8000),
   }),

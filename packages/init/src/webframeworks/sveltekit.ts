@@ -9,8 +9,10 @@ const sveltekitDescription: WebFrameworkDescription = {
   label: "SvelteKit",
   packageManagers: PACKAGE_MANAGER,
   defaultPort: 5173,
-  init: async ({ packageManager: pm, rt, skipSmokeTest, testMode }) => ({
-    command: Array.from(getInitCommand(pm)),
+  init: async (
+    { packageManager: pm, rt, skipInstall, skipSmokeTest, testMode },
+  ) => ({
+    command: Array.from(getInitCommand(pm, skipInstall)),
     dependencies: {
       "@fedify/sveltekit": PACKAGE_VERSION,
       ...(pm === "deno" ? defaultDenoDependencies : {}),
@@ -38,7 +40,7 @@ export default sveltekitDescription;
  * Returns the shell command array to scaffold a new SvelteKit project
  * in the current directory using the given package manager.
  */
-function* getInitCommand(pm: PackageManager) {
+function* getInitCommand(pm: PackageManager, skipInstall: boolean) {
   yield* getSvelteKitInitCommand(pm);
   yield* [
     ".",
@@ -49,9 +51,9 @@ function* getInitCommand(pm: PackageManager) {
     "--no-add-ons",
     "--no-dir-check",
     "--no-download-check",
-    "--install",
-    pm,
   ];
+  if (skipInstall) yield "--no-install";
+  else yield* ["--install", pm];
 }
 
 const getSvelteKitInitCommand = (pm: PackageManager): string[] =>

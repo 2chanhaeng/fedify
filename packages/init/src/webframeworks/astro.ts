@@ -9,8 +9,8 @@ const astroDescription: WebFrameworkDescription = {
   label: "Astro",
   packageManagers: PACKAGE_MANAGER,
   defaultPort: 4321,
-  init: async ({ packageManager: pm, skipSmokeTest, rt }) => ({
-    command: Array.from(getAstroInitCommand(pm)),
+  init: async ({ packageManager: pm, skipInstall, skipSmokeTest, rt }) => ({
+    command: Array.from(getAstroInitCommand(pm, skipInstall)),
     dependencies: getDependencies(pm),
     devDependencies: getDevDependencies(pm),
     federationFile: "src/federation.ts",
@@ -38,6 +38,7 @@ export default astroDescription;
  */
 function* getAstroInitCommand(
   pm: PackageManager,
+  skipInstall: boolean,
 ): Generator<string> {
   yield* createAstroAppCommand(pm);
   yield* [
@@ -50,7 +51,7 @@ function* getAstroInitCommand(
     "--ref",
     `astro@${deps["npm:astro"].replace(/^\D+/, "")}`,
   ];
-  if (pm !== "deno") yield "--no-install";
+  if (pm !== "deno" || skipInstall) yield "--no-install";
   yield* ["&&", "rm", "astro.config.mjs"];
   if (pm === "deno") yield "package.json";
 }
@@ -64,18 +65,11 @@ const getDependencies: (pm: PackageManager) => Record<string, string> = (
   pm === "deno"
     ? {
       ...defaultDenoDependencies,
-      "@fedify/fedify": `npm:@fedify/fedify@${PACKAGE_VERSION}`,
-      "@fedify/vocab": `npm:@fedify/vocab@${PACKAGE_VERSION}`,
-      "@logtape/logtape": `npm:@logtape/logtape@${deps["@logtape/logtape"]}`,
-      // Astro loads integrations and middleware through Vite.  Vite resolves
-      // bare imports from node_modules rather than Deno's JSR import map, so
-      // keep Vite-loaded dependencies on npm even though @fedify/astro is also
-      // published on JSR.
       astro: `npm:astro@${deps["npm:astro"]}`,
       "@deno/astro-adapter": `npm:@deno/astro-adapter@${
         deps["npm:@deno/astro-adapter"]
       }`,
-      "@fedify/astro": `npm:@fedify/astro@${PACKAGE_VERSION}`,
+      "@fedify/astro": PACKAGE_VERSION,
     }
     : pm === "bun"
     ? {

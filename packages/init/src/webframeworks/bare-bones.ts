@@ -2,7 +2,11 @@ import { PACKAGE_MANAGER } from "../const.ts";
 import deps from "../json/deps.json" with { type: "json" };
 import { readTemplate } from "../lib.ts";
 import type { WebFrameworkDescription } from "../types.ts";
-import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
+import {
+  defaultDenoDependencies,
+  defaultDevDependencies,
+  nodeCompilerOptions,
+} from "./const.ts";
 import { addTestTask, getInstruction, nodeBunDevToolTasks } from "./utils.ts";
 
 const bareBonesDescription: WebFrameworkDescription = {
@@ -23,21 +27,7 @@ const bareBonesDescription: WebFrameworkDescription = {
     files: {
       "src/main.ts": await readTemplate(`bare-bones/main/${rt}.ts`),
     },
-    compilerOptions: (pm === "deno"
-      ? {
-        "jsx": "precompile",
-        "jsxImportSource": "hono/jsx",
-      }
-      : {
-        "lib": ["ESNext", "DOM"],
-        "target": "ESNext",
-        "module": "NodeNext",
-        "moduleResolution": "NodeNext",
-        "allowImportingTsExtensions": true,
-        "verbatimModuleSyntax": true,
-        "noEmit": true,
-        "strict": true,
-      }) as Record<string, string | boolean | number | string[] | null>,
+    compilerOptions: pm === "deno" ? undefined : nodeCompilerOptions,
     tasks: addTestTask(rt, skipSmokeTest)(TASKS[rt]),
     instruction: getInstruction(pm, 8000),
   }),

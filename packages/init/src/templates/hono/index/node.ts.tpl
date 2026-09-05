@@ -1,4 +1,3 @@
-// @ts-nocheck this file is just a template
 import { serve } from "@hono/node-server";
 import { behindProxy } from "x-forwarded-fetch";
 import app from "./app.ts";

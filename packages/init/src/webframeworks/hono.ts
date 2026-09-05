@@ -4,7 +4,11 @@ import deps from "../json/deps.json" with { type: "json" };
 import { PACKAGE_VERSION, readTemplate } from "../lib.ts";
 import type { WebFrameworkDescription } from "../types.ts";
 import { replace } from "../utils.ts";
-import { defaultDenoDependencies, defaultDevDependencies } from "./const.ts";
+import {
+  defaultDenoDependencies,
+  defaultDevDependencies,
+  nodeCompilerOptions,
+} from "./const.ts";
 import { addTestTask, getInstruction, nodeBunDevToolTasks } from "./utils.ts";
 
 const honoDescription: WebFrameworkDescription = {
@@ -29,14 +33,7 @@ const honoDescription: WebFrameworkDescription = {
       "src/index.ts": await readTemplate(`hono/index/${rt}.ts`),
     },
     compilerOptions: pm === "deno" ? undefined : {
-      "lib": ["ESNext", "DOM"],
-      "target": "ESNext",
-      "module": "NodeNext",
-      "moduleResolution": "NodeNext",
-      "allowImportingTsExtensions": true,
-      "verbatimModuleSyntax": true,
-      "noEmit": true,
-      "strict": true,
+      ...nodeCompilerOptions,
       "jsx": "react-jsx",
       "jsxImportSource": "hono/jsx",
     },

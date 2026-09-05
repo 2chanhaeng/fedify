@@ -1,4 +1,3 @@
-// @ts-nocheck this file is just a template
 import { Hono } from "/* hono */";
 import { federation } from "@fedify/hono";
 import fedi from "./federation.ts";

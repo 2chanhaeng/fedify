@@ -21,6 +21,7 @@ const fillDir: <T extends { allowNonEmpty: boolean; dir?: string }>(
 ) => Promise<T & { dir: string }> = async (options) => {
   const dir = options.dir ?? await askDir(getCwd());
   if (options.allowNonEmpty) return { ...options, dir };
+  // Keeps asking about the same directory until the user accepts or clears it.
   return await askIfNonEmpty(dir)
     ? { ...options, dir }
     : await fillDir(options);

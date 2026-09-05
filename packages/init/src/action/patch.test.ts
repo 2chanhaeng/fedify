@@ -114,6 +114,26 @@ test("patchFiles writes the smoke-test script", async () => {
     assert.match(testScript, /\["npm", "run", "dev"\]/);
     assert.match(testScript, /ASTRO_DEV_BACKGROUND: "0"/);
     assert.match(testScript, /\["localhost", "127\.0\.0\.1", "\[::1\]"\]/);
+    assert.match(testScript, /process\.exitCode = 1/);
+    assert.doesNotMatch(testScript, /Deno\.test\(/);
+  });
+});
+
+test("patchFiles writes a Deno.test() smoke-test script for Deno", async () => {
+  await withTempDir(async (dir) => {
+    await patchFiles({
+      ...createInitData(dir, false),
+      packageManager: "deno",
+      rt: "deno",
+    });
+
+    const testScript = await readFile(
+      join(dir, "scripts", "smoke.test.ts"),
+      "utf8",
+    );
+    assert.match(testScript, /\["deno", "task", "dev"\]/);
+    assert.match(testScript, /Deno\.test\(/);
+    assert.doesNotMatch(testScript, /process\.exitCode/);
   });
 });
 

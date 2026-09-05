@@ -3,7 +3,6 @@ import { message } from "@optique/core";
 import { print, printError } from "@optique/run";
 import { Chalk } from "chalk";
 import { flow, toMerged } from "es-toolkit";
-import { spawn } from "node:child_process";
 import process from "node:process";
 
 /**
@@ -122,122 +121,6 @@ export const isNotFoundError = (
   isObject(e) &&
   (("code" in e && e.code === "ENOENT") ||
     ("exitCode" in e && e.exitCode === 127));
-
-/**
- * Error thrown when a spawned shell command exits with a non-zero code.
- * Captures stdout, stderr, exit code, and the original command array.
- */
-export class CommandError extends Error {
-  public commandLine: string;
-  public stdout: string;
-  public stderr: string;
-  public code: number;
-  public command: string[];
-
-  constructor(
-    message: string,
-    stdout: string,
-    stderr: string,
-    code: number,
-    command: string[],
-  ) {
-    super(message);
-    this.name = "CommandError";
-    this.stdout = stdout;
-    this.stderr = stderr;
-    this.code = code;
-    this.command = command;
-    this.commandLine = command.join(" ");
-  }
-}
-
-/**
- * Executes a shell command (or a chain of commands joined by `"&&"`) as child
- * processes and returns the combined stdout/stderr output.
- * Throws a {@link CommandError} if any command in the chain exits with a
- * non-zero code.
- *
- * @param command - The command as an array of strings; use `"&&"` to chain
- * @param options - Options forwarded to `node:child_process.spawn`
- * @returns A promise resolving to `{ stdout, stderr }`
- */
-export const runSubCommand = async <Opt extends Parameters<typeof spawn>[2]>(
-  command: string[],
-  options: Opt,
-): Promise<{
-  stdout: string;
-  stderr: string;
-}> => {
-  const commands = command.reduce<string[][]>((acc, cur) => {
-    if (cur === "&&") {
-      acc.push([]);
-    } else {
-      if (acc.length === 0) acc.push([]);
-      acc[acc.length - 1].push(cur);
-    }
-    return acc;
-  }, []);
-
-  const results = { stdout: "", stderr: "" };
-
-  for (const cmd of commands) {
-    try {
-      const result = await runSingularCommand(cmd, options);
-      results.stdout += (results.stdout ? "\n" : "") + result.stdout;
-      results.stderr += (results.stderr ? "\n" : "") + result.stderr;
-    } catch (error) {
-      if (error instanceof CommandError) {
-        results.stdout += (results.stdout ? "\n" : "") + error.stdout;
-        results.stderr += (results.stderr ? "\n" : "") + error.stderr;
-      }
-      throw error;
-    }
-  }
-  return results;
-};
-
-const runSingularCommand = (
-  command: string[],
-  options: Parameters<typeof spawn>[2],
-) =>
-  new Promise<{
-    stdout: string;
-    stderr: string;
-  }>((resolve, reject) => {
-    let stdout = "";
-    let stderr = "";
-    const child = spawn(command[0], command.slice(1), options);
-
-    child.stdout?.on("data", (data) => {
-      stdout += data.toString();
-    });
-    child.stderr?.on("data", (data) => {
-      stderr += data.toString();
-    });
-
-    child.on("close", (code) => {
-      if (code === 0) {
-        resolve({
-          stdout: stdout.trim(),
-          stderr: stderr.trim(),
-        });
-      } else {
-        reject(
-          new CommandError(
-            `Command exited with code ${code ?? "unknown"}`,
-            stdout.trim(),
-            stderr.trim(),
-            code ?? -1,
-            command,
-          ),
-        );
-      }
-    });
-
-    child.on("error", (error) => {
-      reject(error);
-    });
-  });
 
 /** Returns the current working directory. */
 export const getCwd = () => process.cwd();

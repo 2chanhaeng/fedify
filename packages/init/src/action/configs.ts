@@ -16,7 +16,7 @@ import {
   unless,
   when,
   zip,
-} from "@fxts/core/index.js";
+} from "@fxts/core";
 import { getLogger } from "@logtape/logtape";
 import { execFileSync } from "node:child_process";
 import { realpathSync } from "node:fs";

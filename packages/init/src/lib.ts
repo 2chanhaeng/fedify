@@ -30,13 +30,13 @@ import type {
   RuntimeCheck,
   Runtimes,
 } from "./types.ts";
-import { CommandError, isNotFoundError, runSubCommand } from "./utils.ts";
+import { isNotFoundError } from "./utils.ts";
 
 /** The current `@fedify/init` package version, read from *deno.json*. */
 export const PACKAGE_VERSION = metadata.version;
 
 /** Logger instance for the `fedify init` command, scoped to `["fedify", "cli", "init"]`. */
-export const logger = getLogger(["fedify", "cli", "init"]);
+export const logger = getLogger(["fedify", "init"]);
 
 const addFedifyDeps = <T extends object>(json: T): T =>
   Object.fromEntries(
@@ -329,21 +329,19 @@ const isUnbornGitRepository = async (path: string): Promise<boolean> => {
 
 const hasGitHeadCommit = async (path: string): Promise<boolean> => {
   try {
-    await runSubCommand([
-      "git",
-      "-C",
-      path,
-      "rev-parse",
-      "--verify",
-      "HEAD^{commit}",
-    ], {});
-    return true;
+    const result = await $`git -C ${path} rev-parse --verify ${"HEAD^{commit}"}`
+      .stdout("null")
+      .stderr("null")
+      .noThrow()
+      .spawn();
+    return result.code === 0;
   } catch (e) {
-    if (isNotFoundError(e) || e instanceof CommandError) return false;
-    logger.debug(
-      "Failed to resolve Git HEAD in {path}: {error}",
-      { path, error: e },
-    );
+    if (!isNotFoundError(e)) {
+      logger.debug(
+        "Failed to resolve Git HEAD in {path}: {error}",
+        { path, error: e },
+      );
+    }
     return false;
   }
 };

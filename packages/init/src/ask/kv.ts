@@ -1,4 +1,4 @@
-import { pipe, tap, throwError, unless, when } from "@fxts/core/index.js";
+import { pipe, tap, throwError, unless, when } from "@fxts/core";
 import { select } from "@inquirer/prompts";
 import { printErrorMessage } from "../utils.ts";
 import { KV_STORE } from "../const.ts";

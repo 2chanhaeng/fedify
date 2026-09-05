@@ -24,7 +24,7 @@ export const addTestTask = (
 (tasks) => skipSmokeTest ? tasks : { ...tasks, test: DEFAULT_TEST_TASKS[rt] };
 
 const DEFAULT_TEST_TASKS: Record<Runtime, string> = {
-  deno: `deno test`,
+  deno: `deno test --allow-run --allow-env --allow-net`,
   bun: `bun test --timeout 15000`,
   node: `node --test`,
 };
