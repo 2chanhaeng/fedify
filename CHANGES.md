@@ -173,6 +173,12 @@ To be released.
     `esnext.temporal` lib reference.
     [[#823], [#925]]
 
+### @fedify/denokv
+
+ -  Changed the `es-toolkit` dependency to resolve through JSR
+    (`@es-toolkit/es-toolkit`) instead of npm, so that Deno projects using
+    `@fedify/denokv` no longer need a *node\_modules* directory to load it.
+
 ### @fedify/init
 
  -  Added a `test` task to projects scaffolded by `fedify init`.  It starts

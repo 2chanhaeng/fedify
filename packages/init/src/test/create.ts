@@ -208,9 +208,10 @@ async function linkDenoWorkspacePackages(dir: string): Promise<void> {
   );
   for (const link of config.links ?? []) {
     const packageDir = resolve(dir, link);
-    const metadata: PackageMetadata = JSON.parse(
-      await readFile(join(packageDir, "package.json"), "utf8"),
-    );
+    // JSR-only packages such as @fedify/denokv have no package.json.
+    // Deno resolves them through `links` alone, so skip the npm symlink.
+    const metadata = await readPackageMetadata(packageDir);
+    if (metadata == null) continue;
     const target = join(dir, "node_modules", ...metadata.name.split("/"));
     await mkdir(dirname(target), { recursive: true });
     try {
@@ -220,6 +221,22 @@ async function linkDenoWorkspacePackages(dir: string): Promise<void> {
     }
   }
 }
+
+async function readPackageMetadata(
+  packageDir: string,
+): Promise<PackageMetadata | null> {
+  try {
+    return JSON.parse(
+      await readFile(join(packageDir, "package.json"), "utf8"),
+    );
+  } catch (error) {
+    if (isErrnoException(error) && error.code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+const isErrnoException = (error: unknown): error is { code?: string } =>
+  error instanceof Error && "code" in error;
 
 export function filterOptions(
   options: GeneratedType<ReturnType<typeof generateTestCases>>,
