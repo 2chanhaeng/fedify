@@ -6,6 +6,9 @@
 // esnext.temporal library reference rather than polyfill-specific imports.
 // The final type-consumer checks make sure the generated declarations work
 // under the TypeScript module resolution modes used by modern app templates.
+// Deno uses its global cache (`nodeModulesDir: none`), so the root
+// node_modules tree contains no hoisted packages.  The consumer projects
+// therefore link `@types/node` from a workspace package that declares it.
 
 import { join } from "node:path";
 
@@ -96,6 +99,39 @@ async function findTypeScriptCompiler(): Promise<string> {
   throw new Error("Could not find the TypeScript compiler.");
 }
 
+// Prefer packages that take `@types/node` from the pnpm catalog so the
+// consumer checks see the version shared across the workspace rather than a
+// package-specific pin.
+async function findNodeTypes(): Promise<string> {
+  const specs = await Promise.all(
+    typeConsumerPackages.map(async (pkg) => {
+      const manifest = JSON.parse(
+        await Deno.readTextFile(join(root, "packages", pkg, "package.json")),
+      );
+      const spec: string | undefined =
+        manifest.devDependencies?.["@types/node"] ??
+          manifest.dependencies?.["@types/node"];
+      return { pkg, spec };
+    }),
+  );
+  const candidates = [
+    ...specs.filter(({ spec }) => spec === "catalog:"),
+    ...specs.filter(({ spec }) => spec != null && spec !== "catalog:"),
+  ].map(({ pkg }) =>
+    join(root, "packages", pkg, "node_modules", "@types", "node")
+  );
+  for (const candidate of candidates) {
+    try {
+      if ((await Deno.stat(join(candidate, "package.json"))).isFile) {
+        return candidate;
+      }
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) throw error;
+    }
+  }
+  throw new Error("Could not find the @types/node package.");
+}
+
 for (const pkg of packages) {
   const dist = `packages/${pkg}/dist`;
   const files = [];
@@ -153,6 +189,7 @@ async function prepareTypeConsumerProject(
     dir: join(root, "tmp"),
     prefix: `temporal-polyfill-${name}-`,
   });
+  const symlinkType = Deno.build.os === "windows" ? "junction" : "dir";
   await Deno.mkdir(join(dir, "node_modules", "@fedify"), { recursive: true });
   for (const pkg of typeConsumerPackages) {
     // Symlink the package root so package.json exports resolve to the dist
@@ -160,9 +197,17 @@ async function prepareTypeConsumerProject(
     await Deno.symlink(
       join(root, "packages", pkg),
       join(dir, "node_modules", "@fedify", pkg),
-      { type: Deno.build.os === "windows" ? "junction" : "dir" },
+      { type: symlinkType },
     );
   }
+  // `types: ["node"]` below resolves through the consumer's own node_modules,
+  // which the pnpm-managed root tree does not provide.
+  await Deno.mkdir(join(dir, "node_modules", "@types"), { recursive: true });
+  await Deno.symlink(
+    await findNodeTypes(),
+    join(dir, "node_modules", "@types", "node"),
+    { type: symlinkType },
+  );
   await Deno.writeTextFile(
     join(dir, "package.json"),
     `${JSON.stringify({ type: "module", private: true }, null, 2)}\n`,
