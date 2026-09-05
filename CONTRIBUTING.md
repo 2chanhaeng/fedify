@@ -339,6 +339,41 @@ The test artifacts are written under */tmp/fedify-init/&lt;run-id&gt;/* on Unix.
 The internal `test-init` command uses `FEDIFY_TEST_MODE` to select local
 workspace packages and is not part of the public CLI.
 
+Combinations that use an external key-value store or message queue need a
+running database.  Inside the repository's devcontainer
+(*.devcontainer/devcontainer.json*), the `test:init:db:*` tasks install,
+start, and stop them.  The tasks target the devcontainer (Ubuntu with apt,
+passwordless sudo, and no systemd) and may not work in other environments:
+
+~~~~ bash
+mise run test:init:db:install
+mise run test:init:db:start --background
+mise run test:init:db:stop
+~~~~
+
+Without a flag every database is selected.  Pass `--redis`, `--postgres`,
+`--mysql`, or `--amqp` to select databases.  The databases listen on their
+default ports, which the generated projects expect:
+
+| Flag         | Database        | Port |
+| ------------ | --------------- | ---- |
+| `--redis`    | Redis           | 6379 |
+| `--postgres` | PostgreSQL      | 5432 |
+| `--mysql`    | MariaDB (MySQL) | 3306 |
+| `--amqp`     | RabbitMQ (AMQP) | 5672 |
+
+`test:init:db:start` blocks until Ctrl-C and then stops the databases it
+started.  With `--background` it returns once they are up, skipping databases
+that already listen on their default port.  Pass `--with-db` to `test:init`
+to start the databases in the background before the tests and stop them
+afterwards:
+
+~~~~ bash
+mise run test:init -- --with-db -w hono -p deno
+~~~~
+
+The scripts behind the tasks live under *scripts/test-init-db/*.
+
 ### Testing examples
 
 Run all example tests, or name the examples that your change affects:

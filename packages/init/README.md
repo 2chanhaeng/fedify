@@ -94,3 +94,16 @@ mise run test:init -- -w hono -p deno
 
 Use `--no-dry-run` to test with actual file creation and dependency
 installation, or `--no-hyd-run` to only log outputs without creating files.
+
+Combinations that use Redis, PostgreSQL, MariaDB/MySQL, or RabbitMQ need the
+database to be running on its default port (6379, 5432, 3306, or 5672).
+Inside the repository's devcontainer, the `test:init:db:install`,
+`test:init:db:start`, and `test:init:db:stop` tasks manage them, and
+`--with-db` starts and stops them around a test run:
+
+~~~~ sh
+mise run test:init -- --with-db -w hono -p deno
+~~~~
+
+These tasks target the devcontainer and may not work in other environments.
+See the “Testing the initializer” section of *CONTRIBUTING.md* for details.

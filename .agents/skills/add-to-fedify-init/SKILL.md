@@ -101,8 +101,11 @@ At a minimum, test the following three combinations.
  -  `mise test:init -w framework`: Tests all package manager, KV store,
     and message queue combinations with the framework selected.  If a
     required database is not installed or running, this combinations are
-    useless. Therefore, if the test output indicates that the databases are
-    not running, don't use this combination ever again for the session.  
+    useless.  In the repository's devcontainer, run
+    `mise run test:init:db:install` once and pass `--with-db` to
+    `mise test:init` to start and stop the databases around the run.
+    Elsewhere, if the test output indicates that the databases are not
+    running, don't use this combination ever again for the session.
     Instead, use the previous one or the next one.
  -  `mise test:init -m in-process -k in-memory --no-dry-run`: Fixes the
     KV store and message queue and tests all web framework and package

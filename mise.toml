@@ -344,6 +344,43 @@ description = "Run tests for the init package"
 depends = ["build"]
 run = "deno task -f @fedify/init test-init"
 
+[tasks."test:init:db:install"]
+description = "Install the databases for test:init"
+usage = """
+about "Installs the databases used by test:init unless they are already installed and startable. Guaranteed only in the devcontainer."
+flag "--redis" help="Redis (port 6379)"
+flag "--postgres" help="PostgreSQL (port 5432)"
+flag "--mysql" help="MariaDB/MySQL (port 3306)"
+flag "--amqp" help="RabbitMQ/AMQP (port 5672)"
+"""
+shell = "bash -c"
+run = "bash scripts/test-init-db/run.sh install ${usage_redis:+--redis} ${usage_postgres:+--postgres} ${usage_mysql:+--mysql} ${usage_amqp:+--amqp}"
+
+[tasks."test:init:db:start"]
+description = "Start the databases for test:init"
+usage = """
+about "Starts the databases used by test:init and blocks until Ctrl-C, which stops them again.  Guaranteed only in the devcontainer."
+flag "--redis" help="Redis (port 6379)"
+flag "--postgres" help="PostgreSQL (port 5432)"
+flag "--mysql" help="MariaDB/MySQL (port 3306)"
+flag "--amqp" help="RabbitMQ/AMQP (port 5672)"
+flag "--background" help="Return once the databases are up; skip those already running on their default port"
+"""
+shell = "bash -c"
+run = "bash scripts/test-init-db/run.sh start ${usage_redis:+--redis} ${usage_postgres:+--postgres} ${usage_mysql:+--mysql} ${usage_amqp:+--amqp} ${usage_background:+--background}"
+
+[tasks."test:init:db:stop"]
+description = "Stop the databases for test:init"
+usage = """
+about "Stops the running databases used by test:init. Guaranteed only in the devcontainer."
+flag "--redis" help="Redis (port 6379)"
+flag "--postgres" help="PostgreSQL (port 5432)"
+flag "--mysql" help="MariaDB/MySQL (port 3306)"
+flag "--amqp" help="RabbitMQ/AMQP (port 5672)"
+"""
+shell = "bash -c"
+run = "bash scripts/test-init-db/run.sh stop ${usage_redis:+--redis} ${usage_postgres:+--postgres} ${usage_mysql:+--mysql} ${usage_amqp:+--amqp}"
+
 # Snapshot updates
 # Note: vocab uses @std/testing/snapshot which only works on Deno
 # vocab-tools has separate snapshots for each runtime

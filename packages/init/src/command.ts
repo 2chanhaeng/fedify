@@ -2,6 +2,7 @@ import {
   argument,
   choice,
   command,
+  commandLine,
   constant,
   type InferValue,
   merge,
@@ -124,6 +125,15 @@ const noDryRun = object({
     description: message`Test with files creations and installations.`,
   }),
 });
+
+const withDb = option("--with-db", {
+  description: message`Start the required databases with ${
+    commandLine("mise run test:init:db:start --background")
+  } command before the tests and cleanup them with ${
+    commandLine("mise run test:init:db:stop")
+  } afterwards (devcontainer only).`,
+});
+
 /**
  * The `test-init` CLI command parser.
  */
@@ -135,16 +145,18 @@ export const testInitCommand = command(
       packageManager: multiple(packageManager),
       kvStore: multiple(kvStore),
       messageQueue: multiple(messageQueue),
+      withDb,
     }),
     optional(or(noHydRun, noDryRun)),
   ),
   {
     brief: message`Test an initializing command.`,
-    description: message`Test an initializing command on temporary directories.
-
-Unless you specify all options (${optionNames(["-w", "--web-framework"])}, ${
-      optionNames(["-p", "--package-manager"])
-    }, ${optionNames(["-k", "--kv-store"])}, and ${
+    description: message`Test an initializing command on temporary directories.\
+\n\n Unless you specify all options (${
+      optionNames(["-w", "--web-framework"])
+    }, ${optionNames(["-p", "--package-manager"])}, ${
+      optionNames(["-k", "--kv-store"])
+    }, and ${
       optionNames(["-m", "--message-queue"])
     }), it will test all combinations of the options.`,
   },
